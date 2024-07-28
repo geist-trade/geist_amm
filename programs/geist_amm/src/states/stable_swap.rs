@@ -1,7 +1,18 @@
 use anchor_lang::prelude::*;
-use crate::{errors::GeistError, math::U256};
+use crate::{errors::GeistError, math::{u256, U256}};
 
 pub const MAX_ITERATIONS: u8 = 255;
+pub const PRECISION: u64 = 1_000_000_000;
+
+pub struct SwapOut {
+    out_amount: U256,
+    fee: U256,
+}
+
+pub struct SwapIn {
+    in_amount: U256,
+    fee: U256,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct StableSwap {
@@ -245,6 +256,143 @@ impl StableSwap {
         numerator
             .checked_div(denominator)
             .ok_or(GeistError::DivisionByZero.into())
+    }
+
+    // Calculates output `to` amount after a swap, given `from` input.
+    fn swap_exact_in(
+        &self,
+        // Vector of all balances in the pool.
+        balances: &Vec<u64>,
+        // Index in the balances array. Token to be deposited.
+        from: usize,
+        // Index in the balances array. Token to be withdrawn.
+        to: usize,
+        // Amount of `from` coming into the swap.
+        from_amount: u64,
+    ) -> Result<SwapOut> {
+        // Calculate new balance of `from`.
+        let new_from = balances[from]
+            .checked_add(from_amount)
+            .ok_or(GeistError::MathOverflow)?;
+
+        // Calculate how much Y token will be left in the pool after swap.
+        let y = self.compute_i_from_j(
+            balances,
+            to,
+            from,
+            new_from
+        )?;
+
+        // Calculate difference between initial and after-swap balances of the output token.
+        // The difference is essentially how much token will be returned from the pool.
+        let dy = U256::from(balances[to])
+            .checked_sub(y)
+            .ok_or(GeistError::MathOverflow)?
+            .checked_sub(1.into())
+            .ok_or(GeistError::MathOverflow)?;
+
+        let fee = U256::from(0);
+        let out_amount = dy
+            .checked_sub(fee)
+            .ok_or(GeistError::MathOverflow)?;
+        
+        Ok(SwapOut {
+            fee,
+            out_amount
+        })
+    }
+
+    // Returns amount of input tokens necessary in order to get
+    // specified amount of output tokens as a result.
+    fn swap_exact_out(
+        &self,
+        // Vector of all balances in the pool.
+        balances: &Vec<u64>,
+        // Index in the balances array. Token to be deposited.
+        in_id: usize,
+        // Index in the balances array. Token to be withdrawn.
+        out_id: usize,
+        // Amount of `from` coming into the swap.
+        out_amount: u64,
+        // Fee taken on the swap, in basepoints.
+        fee_bps: u64,
+    ) -> Result<SwapIn> {
+        let fee = out_amount
+            .checked_mul(fee_bps)
+            .ok_or(GeistError::MathOverflow)?
+            .checked_div(10_000 as u64)
+            .ok_or(GeistError::MathOverflow)?;
+
+        // This is real out amount that we need to swap into. Users will
+        // still get `out_amount`, the fee will go to the pool.
+        let total_out = out_amount
+            .checked_add(fee)
+            .ok_or(GeistError::MathOverflow)?;
+
+        let y = self.compute_i_from_j(
+            balances,
+            in_id,
+            out_id,
+            balances[out_id]
+                .checked_sub(total_out)
+                .ok_or(GeistError::MathOverflow)?,
+        )?;
+
+        let dy = y
+            .checked_sub(U256::from(balances[in_id]))
+            .ok_or(GeistError::MathOverflow)?;
+
+        Ok(SwapIn {
+            fee: fee.into(),
+            in_amount: dy
+        })
+    }
+
+    // Get virtual price of the LP token vs underlying assets.
+    fn get_virtual_price(
+        &self, 
+        balances: &Vec<u64>,
+        lp_token_supply: u64
+    ) -> Result<U256> {
+        let d = self.compute_d(balances)?;
+        let n = balances.len() as u64;
+    
+        let virtual_price = d
+            .checked_mul(U256::from(PRECISION))
+            .and_then(|x| x.checked_div(U256::from(n)))
+            .and_then(|x| x.checked_div(U256::from(lp_token_supply)))
+            .ok_or(GeistError::MathOverflow)?;
+    
+        Ok(virtual_price)
+    }
+
+    // Simulate swap & return price given exact input.
+    fn get_spot_price(
+        &self,
+        // Vector of all balances in the pool.
+        balances: &Vec<u64>,
+        // Index in the balances array. Token to be deposited.
+        from: usize,
+        // Index in the balances array. Token to be withdrawn.
+        to: usize,
+        // Amount of `from` coming into the swap.
+        from_amount: u64,
+    ) -> Result<U256> {
+        let SwapOut {
+            fee: _,
+            out_amount
+        } = self.swap_exact_in(
+            balances,
+            from,
+            to,
+            from_amount
+        )?;
+
+        let price = U256::from(from_amount)
+            .checked_div(out_amount)
+            .ok_or(GeistError::MathOverflow)?;
+
+        Ok(price)
     }
 
 }
