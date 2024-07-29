@@ -515,7 +515,7 @@ impl StableSwap {
 
     pub fn compute_lp_tokens_on_deposit_multi(
         &self,
-        deposits: &Vec<u64>,  // Deposits for each token
+        deposits: &Vec<u64>,
         balances: &Vec<u64>,
         lp_token_supply: u64
     ) -> Result<u64> {
