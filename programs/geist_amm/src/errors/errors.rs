@@ -31,4 +31,25 @@ pub enum GeistError {
 
     #[msg("DivisionByZero")]
     DivisionByZero,
+
+    #[msg("PoolTokensCountOutOfBound")]
+    PoolTokensCountOutOfBound,
+
+    #[msg("InvalidInputLength")]
+    InvalidInputLength,
+
+    #[msg("AmplificationCoefficientOutOfBound")]
+    AmplificationCoefficientOutOfBound,
+
+    #[msg("LpTokenPreMinted")]
+    LpTokenPreMinted,
+
+    #[msg("InvalidMintAuthority")]
+    InvalidMintAuthority,
+
+    #[msg("InvalidFreezeAuthority")]
+    InvalidFreezeAuthority,
+
+    #[msg("LpTokenNotInitialized")]
+    LpTokenNotInitialized
 }

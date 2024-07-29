@@ -1,8 +1,19 @@
 use anchor_lang::prelude::*;
+use anchor_spl::token_2022::spl_token_2022::solana_zk_token_sdk::encryption::pedersen::G;
+use self::borsh;
 use crate::{errors::GeistError, math::{u256, U256}};
+
+pub const MIN_AMP: u64 = 1;
+pub const MAX_AMP: u64 = 1_000_000;
 
 pub const MAX_ITERATIONS: u8 = 255;
 pub const PRECISION: u64 = 1_000_000_000;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, AnchorSerialize, AnchorDeserialize)]
+pub enum StableSwapMode {
+    BINARY, // only 2 tokens
+    MULTI // up to 8 tokens are supported
+}
 
 pub struct SwapOut {
     out_amount: U256,
@@ -14,39 +25,64 @@ pub struct SwapIn {
     fee: U256,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, AnchorSerialize, AnchorDeserialize)]
 pub struct StableSwap {
     // Amplification coefficient
-    amp: u64, // 8
-    
+    pub amp: u64, // 8
+
     // Number of tokens in the pool.
-    n_tokens: u64, // 8
+    pub n_tokens: u64, // 8
+
+    pub mode: StableSwapMode, // 1
 }
 
 impl StableSwap {
-    pub const SIZE: u64 = 8 + 2 * 8;
+    pub const SIZE: u64 = 8 + 2 * 8 + 1;
 
     pub fn new(
         amp: u64,
         n_tokens: u64,
-    ) -> Self {
-        Self {
-            amp,
-            n_tokens
+    ) -> Result<Self> {
+        if (amp < MIN_AMP || amp > MAX_AMP) {
+            return Err(GeistError::AmplificationCoefficientOutOfBound.into());
         }
+
+        if (n_tokens < 2 || n_tokens > 8) {
+            return Err(GeistError::PoolTokensCountOutOfBound.into())
+        }
+
+        Ok(Self {
+            amp,
+            n_tokens,
+            mode: if n_tokens > 2 { StableSwapMode::MULTI } else { StableSwapMode::BINARY }
+        })
     }
 
     pub fn new_binary(
         amp: u64,
-    ) -> Self {
-        Self {
-            amp,
-            n_tokens: 2
-        }
+    ) -> Result<Self> {
+        return Ok(
+            Self::new(
+                amp,
+                2
+            )?
+        );
     }
 
     pub fn get_amp(&self) -> u64 {
         self.amp
+    }
+
+    pub fn add_token(
+        &mut self
+    ) -> () {
+        self.n_tokens += 1;
+    }
+
+    pub fn remove_token(
+        &mut self
+    ) -> () {
+        self.n_tokens -= 1;
     }
 
     // Helper to calculate the D invariant.
@@ -473,6 +509,58 @@ impl StableSwap {
             .ok_or(GeistError::DivisionByZero)?
             .try_into()
             .map_err(|_| GeistError::CastFailed)?;
+
+        Ok(lp_tokens)
+    }
+
+    pub fn compute_lp_tokens_on_deposit_multi(
+        &self,
+        deposits: &Vec<u64>,  // Deposits for each token
+        balances: &Vec<u64>,
+        lp_token_supply: u64
+    ) -> Result<u64> {
+        if deposits.len() != balances.len() {
+            return Err(GeistError::InvalidInputLength.into());
+        }
+
+        // If it's the first deposit in the pool
+        if lp_token_supply == 0 {
+            let new_balances: Vec<u64> = balances.iter().zip(deposits.iter())
+                .map(|(&balance, &deposit)| balance
+                    .checked_add(deposit)
+                    .ok_or(GeistError::MathOverflow.into())
+                )
+                .collect::<Result<Vec<u64>>>()?;
+
+            let lp_tokens: u64 = self.compute_d(&new_balances)?
+                .try_into()
+                .map_err(|_| GeistError::MathOverflow)?;
+
+            return Ok(lp_tokens);
+        }
+
+        let current_d = self.compute_d(balances)?;
+
+        let new_balances = balances.iter().zip(deposits.iter())
+            .map(|(&balance, &deposit)| balance
+                .checked_add(deposit)
+                .ok_or(GeistError::MathOverflow.into())
+            )
+            .collect::<Result<Vec<u64>>>()?;
+
+        let new_d = self.compute_d(&new_balances)?;
+
+        let lp_tokens: u64 = U256::from(lp_token_supply)
+            .checked_mul(
+                new_d
+                    .checked_sub(current_d)
+                    .ok_or(GeistError::MathOverflow)?
+            )
+            .ok_or(GeistError::MathOverflow)?
+            .checked_div(current_d)
+            .ok_or(GeistError::DivisionByZero)?
+            .try_into()
+            .map_err(|_| GeistError::MathOverflow)?;
 
         Ok(lp_tokens)
     }
