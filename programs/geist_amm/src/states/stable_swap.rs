@@ -45,6 +45,11 @@ impl StableSwap {
         }
     }
 
+    pub fn get_amp(&self) -> u64 {
+        self.amp
+    }
+
+    // Helper to calculate the D invariant.
     pub fn compute_d_next(
         &self,
         d_prev: U256,
@@ -94,6 +99,7 @@ impl StableSwap {
             .ok_or(GeistError::MathOverflow.into())
     }
 
+    // Calculate D invariant
     pub fn compute_d(
         &self,
         balances: &Vec<u64>,
@@ -153,7 +159,8 @@ impl StableSwap {
         Err(GeistError::InvariantPrecisionNotFound.into())
     }
 
-    fn compute_i_from_j(
+    // Compute new Y balance given new X balance.
+    fn compute_y(
         &self,
         // Vector of all balances in the pool.
         balances: &Vec<u64>,
@@ -216,7 +223,7 @@ impl StableSwap {
     
         let mut y_prev = d;
         for _ in 0..MAX_ITERATIONS {
-            let y = self.compute_i_from_j_next(
+            let y = self.compute_y_next(
                 y_prev, 
                 sum_term, 
                 product_term, 
@@ -232,7 +239,8 @@ impl StableSwap {
         Err(GeistError::InvariantPrecisionNotFound.into())
     }
 
-    fn compute_i_from_j_next(
+    // Helper for compute_y 
+    fn compute_y_next(
         &self,
         y_prev: U256, 
         b: U256, 
@@ -258,7 +266,7 @@ impl StableSwap {
             .ok_or(GeistError::DivisionByZero.into())
     }
 
-    // Calculates output `to` amount after a swap, given `from` input.
+    // Calculates output (of `to` token) of a swap, given `from` input amount.
     fn swap_exact_in(
         &self,
         // Vector of all balances in the pool.
@@ -276,7 +284,7 @@ impl StableSwap {
             .ok_or(GeistError::MathOverflow)?;
 
         // Calculate how much Y token will be left in the pool after swap.
-        let y = self.compute_i_from_j(
+        let y = self.compute_y(
             balances,
             to,
             from,
@@ -329,7 +337,7 @@ impl StableSwap {
             .checked_add(fee)
             .ok_or(GeistError::MathOverflow)?;
 
-        let y = self.compute_i_from_j(
+        let y = self.compute_y(
             balances,
             in_id,
             out_id,
@@ -366,7 +374,7 @@ impl StableSwap {
         Ok(virtual_price)
     }
 
-    // Simulate swap & return price given exact input.
+    // Simulate output token price given exact input (specific amount).
     fn get_spot_price(
         &self,
         // Vector of all balances in the pool.
@@ -395,4 +403,77 @@ impl StableSwap {
         Ok(price)
     }
 
+    // Compute lp tokens that should be minted given specific deposit.
+    pub fn compute_lp_tokens_on_deposit(
+        &self,
+        deposit_id: usize,
+        deposit_amount: u64,
+        balances: &Vec<u64>,
+        lp_token_supply: u64
+    ) -> Result<u64> {
+        // If it's the first deposit in the pool, just calculate the invariant.
+        if lp_token_supply == 0 {
+            let mut new_balances = balances.clone();
+            new_balances[deposit_id] += deposit_amount;
+
+            let lp_tokens: u64 = self
+                .compute_d(&new_balances)?
+                .try_into()
+                .map_err(|_| GeistError::MathOverflow)?;
+
+
+            return Ok(lp_tokens);
+        }
+
+        let current_d = self.compute_d(balances)?;
+
+        let mut new_balances = balances.clone();
+        new_balances[deposit_id] = deposit_amount;
+
+        let new_d = self.compute_d(&new_balances)?;
+        let lp_tokens: u64 = U256::from(lp_token_supply)
+                .checked_mul(
+                    new_d
+                        .checked_sub(current_d)
+                        .ok_or(GeistError::MathOverflow)?
+                )
+                .ok_or(GeistError::MathOverflow)?
+                .checked_div(current_d)
+                .ok_or(GeistError::DivisionByZero)?
+                .try_into()
+                .map_err(|_| GeistError::MathOverflow)?;
+
+
+        Ok(lp_tokens)
+    }
+
+    // Compute input amount of the lp token given withdrawal amount and token id.
+    pub fn compute_lp_tokens_on_withdrawal(
+        &self,
+        withdrawal_id: usize,
+        withdrawal_amount: u64,
+        balances: &Vec<u64>,
+        lp_token_supply: u64
+    ) -> Result<u64> {
+        let current_d = self.compute_d(balances)?;
+
+        let mut new_balances = balances.clone();
+        new_balances[withdrawal_id] -= withdrawal_amount;
+
+        let new_d = self.compute_d(&new_balances)?;
+
+        let lp_tokens: u64 = U256::from(lp_token_supply)
+            .checked_mul(
+                current_d
+                    .checked_sub(new_d)
+                    .ok_or(GeistError::MathOverflow)?
+            )
+            .ok_or(GeistError::MathOverflow)?
+            .checked_div(current_d)
+            .ok_or(GeistError::DivisionByZero)?
+            .try_into()
+            .map_err(|_| GeistError::CastFailed)?;
+
+        Ok(lp_tokens)
+    }
 }
