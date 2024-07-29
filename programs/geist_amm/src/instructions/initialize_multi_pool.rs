@@ -5,7 +5,9 @@ use anchor_spl::token::{
     TokenAccount,
     spl_token::state::AccountState,
     Transfer,
-    transfer
+    transfer,
+    MintTo,
+    mint_to
 };
 use anchor_spl::associated_token::get_associated_token_address;
 use crate::constants::*;
@@ -15,12 +17,15 @@ use crate::errors::GeistError;
 
 pub fn initialize_multi_pool<'a>(
     ctx: Context<'_, '_, '_, 'a, InitializeMultiPool<'a>>,
+    n_tokens: u64,
     deposits: Vec<u64>,
 ) -> Result<()> {
     let admin = &ctx.accounts.admin;
     let core = &ctx.accounts.core;
     let multi_pool = &ctx.accounts.multi_pool;
+    let lp_token = &ctx.accounts.lp_token;
     let token_program = &ctx.accounts.token_program;
+    let lp_token_admin_ata = &ctx.accounts.lp_token_admin_ata;
 
     // Remaining accounts have to be provided in the following schema:
     // (stablecoin, stablecoin_vault, stablecoin_admin_ata)
@@ -87,12 +92,41 @@ pub fn initialize_multi_pool<'a>(
         }
     }
 
-    let lp_tokens =
+    let lp_tokens = multi_pool
+        .swap
+        .compute_lp_tokens_on_deposit_multi(
+            &deposits, 
+            &balances, 
+            lp_token.supply
+        )?;
+
+    let signer_seeds = &[
+        BINARY_POOL_SEED.as_bytes(),
+        &core.next_pool_id.to_le_bytes(),
+        &[ctx.bumps.multi_pool]
+    ];
+
+    mint_to(
+        CpiContext::new_with_signer(
+            token_program.to_account_info(), 
+            MintTo {
+                authority: multi_pool.to_account_info(),
+                mint: lp_token.to_account_info(),
+                to: lp_token_admin_ata.to_account_info()
+            }, 
+            &[signer_seeds]
+        ), 
+        lp_tokens
+    )?;
 
     Ok(())
 }
 
 #[derive(Accounts)]
+#[instruction(
+    n_tokens: u64,
+    deposits: Vec<u64>,
+)]
 pub struct InitializeMultiPool<'info> {
     #[account(
         mut
@@ -116,10 +150,26 @@ pub struct InitializeMultiPool<'info> {
             BINARY_POOL_SEED.as_bytes(),
             &core.next_pool_id.to_le_bytes()
         ],
-        space = BinaryPool::INITIAL_SIZE as usize,
+        space = MultiPool::INITIAL_SIZE as usize + ((n_tokens * 32) as usize),
         bump,
     )]
     pub multi_pool: Account<'info, MultiPool>,
+
+    #[account(
+        mut,
+        constraint = lp_token.supply == 0 @ GeistError::LpTokenPreMinted,
+        constraint = lp_token.mint_authority == Some(multi_pool.key()).into() @ GeistError::InvalidMintAuthority,
+        constraint = lp_token.freeze_authority.is_none() @ GeistError::InvalidFreezeAuthority,
+        constraint = lp_token.is_initialized @ GeistError::LpTokenNotInitialized
+    )]
+    pub lp_token: Account<'info, Mint>,
+
+    #[account(
+        mut,
+        associated_token::mint = lp_token,
+        associated_token::authority = admin,
+    )]
+    pub lp_token_admin_ata: Account<'info, TokenAccount>,
 
     #[account()]
     pub token_program: Program<'info, Token>,
