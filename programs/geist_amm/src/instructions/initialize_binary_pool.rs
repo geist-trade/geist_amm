@@ -2,7 +2,6 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{
     self, mint_to, transfer, Mint, MintTo, Token, TokenAccount, Transfer
 };
-use anchor_spl::token_2022::spl_token_2022::solana_zk_token_sdk::instruction::transfer;
 use crate::constants::*;
 use crate::errors::GeistError;
 use crate::states::*;
@@ -46,7 +45,7 @@ pub fn initialize_binary_pool(
     binary_pool.swap = stable_swap;
 
     // Since this pool is binary, initialize 2 balances equal zero.
-    let mut balances: Vec<u64> = vec![
+    let balances: Vec<u64> = vec![
         stablecoin_a_vault.amount,
         stablecoin_b_vault.amount
     ];

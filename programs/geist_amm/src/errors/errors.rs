@@ -51,5 +51,26 @@ pub enum GeistError {
     InvalidFreezeAuthority,
 
     #[msg("LpTokenNotInitialized")]
-    LpTokenNotInitialized
+    LpTokenNotInitialized,
+
+    #[msg("InvalidRemainingAccountsSchema")]
+    InvalidRemainingAccountsSchema,
+
+    #[msg("InvalidTokenAccountOwner")]
+    InvalidTokenAccountOwner,
+
+    #[msg("InvalidTokenAccountMint")]
+    InvalidTokenAccountMint,
+
+    #[msg("InvalidVault")]
+    InvalidVault,
+
+    #[msg("InvalidTokenAccount")]
+    InvalidTokenAccount,
+
+    #[msg("AtaNotInitialized")]
+    AtaNotInitialized,
+
+    #[msg("NotEnoughFunds")]
+    NotEnoughFunds,
 }
