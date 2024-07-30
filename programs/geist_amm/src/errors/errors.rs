@@ -87,5 +87,8 @@ pub enum GeistError {
     NotEnoughLiquidity,
 
     #[msg("ProtocolFrozen")]
-    ProtocolFrozen
+    ProtocolFrozen,
+
+    #[msg("SlippageExceeded")]
+    SlippageExceeded
 }

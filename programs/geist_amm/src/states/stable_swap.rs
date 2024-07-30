@@ -16,13 +16,13 @@ pub enum StableSwapMode {
 }
 
 pub struct SwapOut {
-    out_amount: U256,
-    fee: U256,
+    pub out_amount: u64,
+    pub fee: u64,
 }
 
 pub struct SwapIn {
-    in_amount: U256,
-    fee: U256,
+    pub in_amount: u64,
+    pub fee: u64,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, AnchorSerialize, AnchorDeserialize)]
@@ -196,7 +196,7 @@ impl StableSwap {
     }
 
     // Compute new Y balance given new X balance.
-    fn compute_y(
+    pub fn compute_y(
         &self,
         // Vector of all balances in the pool.
         balances: &Vec<u64>,
@@ -276,7 +276,7 @@ impl StableSwap {
     }
 
     // Helper for compute_y 
-    fn compute_y_next(
+    pub fn compute_y_next(
         &self,
         y_prev: U256, 
         b: U256, 
@@ -303,7 +303,7 @@ impl StableSwap {
     }
 
     // Calculates output (of `to` token) of a swap, given `from` input amount.
-    fn swap_exact_in(
+    pub fn swap_exact_in(
         &self,
         // Vector of all balances in the pool.
         balances: &Vec<u64>,
@@ -341,14 +341,14 @@ impl StableSwap {
             .ok_or(GeistError::MathOverflow)?;
         
         Ok(SwapOut {
-            fee,
-            out_amount
+            fee: fee.to_u64().ok_or(GeistError::MathOverflow)?,
+            out_amount: out_amount.to_u64().ok_or(GeistError::MathOverflow)?
         })
     }
 
     // Returns amount of input tokens necessary in order to get
     // specified amount of output tokens as a result.
-    fn swap_exact_out(
+    pub fn swap_exact_out(
         &self,
         // Vector of all balances in the pool.
         balances: &Vec<u64>,
@@ -388,12 +388,12 @@ impl StableSwap {
 
         Ok(SwapIn {
             fee: fee.into(),
-            in_amount: dy
+            in_amount: dy.to_u64().ok_or(GeistError::MathOverflow)?
         })
     }
 
     // Get virtual price of the LP token vs underlying assets.
-    fn get_virtual_price(
+    pub fn get_virtual_price(
         &self, 
         balances: &Vec<u64>,
         lp_token_supply: u64
@@ -411,7 +411,7 @@ impl StableSwap {
     }
 
     // Simulate output token price given exact input (specific amount).
-    fn get_spot_price(
+    pub fn get_spot_price(
         &self,
         // Vector of all balances in the pool.
         balances: &Vec<u64>,
@@ -433,7 +433,7 @@ impl StableSwap {
         )?;
 
         let price = U256::from(from_amount)
-            .checked_div(out_amount)
+            .checked_div(out_amount.into())
             .ok_or(GeistError::MathOverflow)?;
 
         Ok(price)
