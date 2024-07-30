@@ -3,11 +3,13 @@ pub mod constants;
 pub mod states;
 pub mod errors;
 pub mod math;
+pub mod helpers;
 
 use anchor_lang::prelude::*;
 
 use crate::instructions::*;
 use crate::states::*;
+use crate::helpers::*;
 
 // TODO: Simplify pool initialization, set all pools to be multi.
 // Binary pool is just multi-pool with 2 stablecoins.

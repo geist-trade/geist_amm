@@ -1,7 +1,9 @@
 use anchor_lang::prelude::*;
+use anchor_spl::token;
 use crate::constants::*;
 use crate::states::*;
 use crate::errors::errors::*;
+use anchor_spl::associated_token::get_associated_token_address;
 use crate::program;
 use anchor_spl::token::{
     Mint,
@@ -10,7 +12,8 @@ use anchor_spl::token::{
     mint_to,
     Token,
     Transfer,
-    transfer
+    transfer,
+    spl_token::state::AccountState,
 };
 
 // Similarly to initialize_multi_pool, add_liquidity accepts array of deposits.
@@ -22,8 +25,8 @@ use anchor_spl::token::{
 // ...
 // ]
 
-pub fn add_liquidity(
-    ctx: Context<AddLiquidity>,
+pub fn add_liquidity<'a>(
+    ctx: Context<'_, '_, '_, 'a, AddLiquidity<'a>>,
     pool_id: u64,
     deposits: Vec<u64>,
 ) -> Result<()> {
@@ -77,19 +80,26 @@ pub fn add_liquidity(
             GeistError::InvalidRemainingAccountsSchema
         );
 
+        // If user deposits this token, transfer to LP.
+        let deposit = deposits[n];
+
         // Stablecoin admin ata
         let stablecoin_user_ata_account_info = &groups[n * 3 + 2];
         let stablecoin_user_ata_data = stablecoin_user_ata_account_info.try_borrow_mut_data()?;
         let stablecoin_user_ata = TokenAccount::try_deserialize(&mut stablecoin_user_ata_data.as_ref())?;
-
-        // If user deposits this token, transfer to LP.
-        let deposit = deposits[n];
+        
+        ctx.accounts.validate_stablecoin_user_ata(
+            &stablecoin_user_ata, 
+            &stablecoin_user_ata_account_info.key, 
+            &stablecoin_mint_account_info.key, 
+            deposit
+        )?;
 
         // TODO: Only validate accounts if we use them for deposits?
         if (deposit > 0) {
             transfer(
                 CpiContext::new(
-                    token_program.clone().to_account_info(), 
+                    token_program.to_account_info(), 
                     Transfer {
                         authority: stablecoin_user_ata_account_info.clone(),
                         from: stablecoin_user_ata_account_info.clone(),
@@ -107,24 +117,12 @@ pub fn add_liquidity(
         lp_token.supply
     )?;
 
-    let signer_seeds = &[
-        BINARY_POOL_SEED.as_bytes(),
-        &pool_id.to_le_bytes(),
-        &[ctx.bumps.multi_pool]
-    ];
-
-    // Mint LP tokens to user ata.
-    mint_to(
-        CpiContext::new_with_signer(
-            token_program.to_account_info(), 
-            MintTo {
-                authority: multi_pool.to_account_info(),
-                mint: lp_token.to_account_info(),
-                to: lp_token_user_ata.to_account_info()
-            }, 
-            &[signer_seeds]
-        ), 
-        lp_tokens
+    multi_pool.mint_lp_tokens(
+        lp_tokens, 
+        token_program.to_account_info(), 
+        lp_token.to_account_info(), 
+        lp_token_user_ata.to_account_info(), 
+        multi_pool.to_account_info()
     )?;
 
     Ok(())
@@ -139,6 +137,16 @@ pub struct AddLiquidity<'info> {
         mut
     )]
     pub user: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [
+            CORE_SEED.as_bytes()
+        ],
+        bump,
+        constraint = !core.is_frozen @ GeistError::ProtocolFrozen
+    )]
+    pub core: Account<'info, Core>,
 
     #[account(
         mut,
@@ -170,6 +178,25 @@ pub struct AddLiquidity<'info> {
 }
 
 impl AddLiquidity<'_> {
+    pub fn validate_stablecoin_mint(
+        &self,
+        mint: &Pubkey
+    ) -> Result<()> {
+        // Stablecoin must be supported by the protocol
+        // to be added to a pool. Can't be in withdraw mode.
+        require!(
+            self.core.supported_stablecoins.contains(mint),
+            GeistError::StablecoinNotSupported
+        );
+
+        require!(
+            self.multi_pool.stablecoins.contains(mint),
+            GeistError::StablecoinNotSupported
+        );
+
+        Ok(())
+    }
+
     pub fn validate_stablecoin_vault(
         &self,
         vault: &TokenAccount,
@@ -201,6 +228,40 @@ impl AddLiquidity<'_> {
             rederived_vault.key() == *vault_key,
             GeistError::InvalidVault
         );
+
+        Ok(())
+    }
+    
+    pub fn validate_stablecoin_user_ata(
+        &self,
+        ata: &TokenAccount,
+        ata_key: &Pubkey,
+        mint: &Pubkey,
+        deposit: u64,
+    ) -> Result<()> {
+        // Rederive ata and compare
+        let rederived_ata = get_associated_token_address(
+            self.user.key,
+            mint
+        );
+
+        require!(
+            *ata_key == rederived_ata,
+            GeistError::InvalidTokenAccount
+        );
+        
+        // If admin is depositing from this ata, make sure the account is initialized and has enough funds.
+        if (deposit > 0) {
+            require!(
+                ata.state == AccountState::Initialized,
+                GeistError::AtaNotInitialized
+            );
+
+            require!(
+                ata.amount >= deposit,
+                GeistError::NotEnoughFunds
+            );
+        }
 
         Ok(())
     }

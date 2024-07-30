@@ -82,4 +82,10 @@ pub enum GeistError {
 
     #[msg("PoolFrozen")]
     PoolFrozen,
+
+    #[msg("NotEnoughLiquidity")]
+    NotEnoughLiquidity,
+
+    #[msg("ProtocolFrozen")]
+    ProtocolFrozen
 }
