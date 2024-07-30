@@ -5,7 +5,7 @@ use crate::states::*;
 pub struct MultiPool {
     pub index: u64, // 8
     pub admin: Pubkey, // 32
-    pub stablecoins: Vec<u64>, // 4 + k*8
+    pub stablecoins: Vec<Pubkey>, // 4 + k*32
     pub amp: u64, // 8
     pub is_frozen: bool, // 1
     pub lp_token: Pubkey, // 32

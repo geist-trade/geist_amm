@@ -22,10 +22,12 @@ pub struct Core {
 
     // Frozen flag, if present - reject all transactions.
     pub is_frozen: bool, // 1
+
+    pub total_pools: u64, // 8
 }
 
 impl Core {
-    pub const INITIAL_SIZE: usize = 8 + 8 + 32 + 8 + 8 + 4 + 4 + 1;
+    pub const INITIAL_SIZE: usize = 8 + 8 + 32 + 8 + 8 + 4 + 4 + 1 + 8;
 
     pub fn set_new_superadmin(&mut self, new_superadmin: Pubkey) {
         self.superadmin = new_superadmin;

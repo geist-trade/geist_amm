@@ -73,4 +73,13 @@ pub enum GeistError {
 
     #[msg("NotEnoughFunds")]
     NotEnoughFunds,
+
+    #[msg("InvalidInput")]
+    InvalidInput,
+
+    #[msg("PoolIdMismatch")]
+    PoolIdMismatch,
+
+    #[msg("PoolFrozen")]
+    PoolFrozen,
 }

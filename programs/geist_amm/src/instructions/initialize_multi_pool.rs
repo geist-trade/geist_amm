@@ -17,12 +17,12 @@ use crate::errors::GeistError;
 
 pub fn initialize_multi_pool<'a>(
     ctx: Context<'_, '_, '_, 'a, InitializeMultiPool<'a>>,
+    amp: u64,
     n_tokens: u64,
     deposits: Vec<u64>,
+    fees: Fees
 ) -> Result<()> {
     let admin = &ctx.accounts.admin;
-    let core = &ctx.accounts.core;
-    let multi_pool = &ctx.accounts.multi_pool;
     let lp_token = &ctx.accounts.lp_token;
     let token_program = &ctx.accounts.token_program;
     let lp_token_admin_ata = &ctx.accounts.lp_token_admin_ata;
@@ -39,8 +39,23 @@ pub fn initialize_multi_pool<'a>(
         GeistError::InvalidRemainingAccountsSchema
     );
 
+    // Only support initialization of pools with up to 8 tokens
+    require!(
+        n_tokens < 8,
+        GeistError::InvalidInput
+    );
+
     let groups_count = (groups.len() % 3) as usize;
 
+    // Require user to provide correct number 
+    // of account groups and correct length of deposit array.
+    // No deposit == zeros.
+    require!(
+        groups.len() % 3 == (n_tokens as usize) && deposits.len() == (n_tokens as usize),
+        GeistError::InvalidInput
+    );
+
+    let mut stablecoins: Vec<Pubkey> = Vec::new();
     let mut balances: Vec<u64> = Vec::new();
     for n in 0..groups_count {
         // Stablecoin mint
@@ -49,6 +64,7 @@ pub fn initialize_multi_pool<'a>(
 
         let stablecoin_mint_data = stablecoin_mint_account_info.try_borrow_mut_data()?;
         let stablecoin_mint = Mint::try_deserialize(&mut stablecoin_mint_data.as_ref())?;
+        stablecoins.push(stablecoin_mint_account_info.key());
 
         // Stablecoin vault
         let stablecoin_vault_account_info = &groups[n * 3 + 1];
@@ -73,10 +89,12 @@ pub fn initialize_multi_pool<'a>(
             stablecoin_admin_ata_account_info.key,
             stablecoin_mint_account_info.key,
             deposits[n]
-        );
+        )?;
 
         // If user deposits this token, transfer to LP.
         let deposit = deposits[n];
+
+        // TODO: Only validate accounts if we use them for deposits?
         if (deposit > 0) {
             transfer(
                 CpiContext::new(
@@ -91,6 +109,19 @@ pub fn initialize_multi_pool<'a>(
             )?;
         }
     }
+
+    let core = &mut ctx.accounts.core;
+    let stable_swap = StableSwap::new(amp, n_tokens)?;
+    let multi_pool = &mut ctx.accounts.multi_pool;
+
+    multi_pool.admin = admin.key();
+    multi_pool.amp = amp;
+    multi_pool.swap = stable_swap;
+    multi_pool.fees = fees;
+    multi_pool.is_frozen = false;
+    multi_pool.lp_token = lp_token.key();
+    multi_pool.stablecoins = stablecoins;
+    multi_pool.index = core.next_pool_id;
 
     let lp_tokens = multi_pool
         .swap
@@ -118,6 +149,9 @@ pub fn initialize_multi_pool<'a>(
         ), 
         lp_tokens
     )?;
+
+    core.next_pool_id += 1;
+    core.total_pools += 1;
 
     Ok(())
 }
@@ -184,7 +218,7 @@ impl InitializeMultiPool<'_> {
         mint: &Pubkey
     ) -> Result<()> {
         // Stablecoin must be supported by the protocol
-        // to be added to a pool.
+        // to be added to a pool. Can't be in withdraw mode.
         require!(
             self.core.supported_stablecoins.contains(mint),
             GeistError::StablecoinNotSupported
