@@ -1,7 +1,6 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token_2022::spl_token_2022::solana_zk_token_sdk::encryption::pedersen::G;
 use self::borsh;
-use crate::{errors::GeistError, math::{u256, U256}};
+use crate::{errors::GeistError, math::U256};
 
 pub const MIN_AMP: u64 = 1;
 pub const MAX_AMP: u64 = 1_000_000;

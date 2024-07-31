@@ -8,7 +8,6 @@ use anchor_lang::prelude::*;
 
 use crate::instructions::*;
 use crate::states::*;
-use crate::helpers::*;
 
 // TODO: Simplify pool initialization, set all pools to be multi.
 // Binary pool is just multi-pool with 2 stablecoins.
@@ -63,6 +62,36 @@ pub mod geist {
             n_tokens,
             initial_deposits,
             fees
+        )
+    }
+
+    pub fn add_liquidity<'a>(
+        ctx: Context<'_, '_, '_, 'a, AddLiquidity<'a>>,
+        pool_id: u64, 
+        deposits: Vec<u64>
+    ) -> Result<()> {
+        instructions::add_liquidity(
+            ctx, 
+            pool_id, 
+            deposits
+        )
+    }
+
+    pub fn swap(
+        ctx: Context<Swap>,
+        pool_id: u64,
+        amount: u64,
+        minimum_received: u64,
+        from_id: usize,
+        to_id: usize
+    ) -> Result<()> {
+        instructions::swap(
+            ctx,
+            pool_id,
+            amount,
+            minimum_received,
+            from_id,
+            to_id
         )
     }
 }
