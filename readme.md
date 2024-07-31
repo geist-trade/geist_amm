@@ -1,6 +1,12 @@
 # Geist AMM
 #### Automated Market Maker for co-integrated assets, particularly stablecoins.
 
+# TODO
+- rescale all balances up to 9 decimals for calculations, then rescale back to real decimals.
+- simplify binary_pool to just be implementation of multi_pool with 2 tokens.
+- tests, tests, tests.
+- organize & cleanup codebase.
+
 ### TL:DR
 Geist AMM is an Automated Market Maker for cointegrated assets.
 
