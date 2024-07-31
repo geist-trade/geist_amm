@@ -37,6 +37,7 @@ pub fn initialize_binary_pool(
     binary_pool.is_frozen = false;
     binary_pool.lp_token = lp_token.key();
     binary_pool.fees = fees;
+    binary_pool.amp = amp;
     
     // We can either re-create this StableSwap on every function that needs it,
     // or we can store it's data permanently in the account, and only utilize implementation

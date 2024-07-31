@@ -2,7 +2,7 @@ import * as anchor from "@coral-xyz/anchor";
 import {BN, Program} from "@coral-xyz/anchor";
 import {GeistAmm} from "../target/types/geist_amm";
 import {LAMPORTS_PER_SOL, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, Transaction} from "@solana/web3.js";
-import {Core} from "../sdk";
+import {BinaryPool, Core, StableSwapMode} from "../sdk";
 import {assert, expect} from "chai";
 import createToken from "./helpers/createToken";
 import {
@@ -13,6 +13,8 @@ import {
 } from "@solana/spl-token";
 import mintTokens from "./helpers/mintTokens";
 import transferAuthority from "./helpers/transferAuthority";
+import checkLPTokens from "./stable_swap/checkLPTokens";
+import calculateLPTokens from "./stable_swap/calculateLPTokens";
 
 describe("geist_amm", () => {
     const provider = anchor.AnchorProvider.local();
@@ -290,8 +292,22 @@ describe("geist_amm", () => {
             lpTokenUserAta
         );
 
-        // TODO: Check maths here instead of just checking if any tokens were received
-        expect(userLpTokenAccountData.amount.toString()).not.eq("0");
+        let lpTokensShouldReceive = calculateLPTokens(
+            [
+                new BN(80_000 * LAMPORTS_PER_SOL),
+                new BN(80_000 * LAMPORTS_PER_SOL),
+            ],
+            {
+                amplificationCoefficient: new BN(500_000),
+                reserves: [
+                    new BN(0),
+                    new BN(0)
+                ],
+                totalSupply: new BN(0)
+            }
+        );
+
+        expect(lpTokensShouldReceive.toString()).eq(userLpTokenAccountData.amount.toString());
 
         const userStablecoinATokenAccountData = await getAccount(
             provider.connection,
@@ -308,5 +324,19 @@ describe("geist_amm", () => {
 
         expect(userStablecoinBTokenAccountData.amount.toString())
             .eq(`${ 20000 * LAMPORTS_PER_SOL }`);
+
+        const binaryPoolData = await BinaryPool.fromAccountAddress(
+            provider.connection,
+            binaryPool
+        );
+
+        expect(binaryPoolData.admin.toString()).eq(provider.publicKey.toString());
+        expect(binaryPoolData.lpToken.toString()).eq(lpToken.toString());
+        expect(binaryPoolData.index.toString()).eq("0");
+        expect(binaryPoolData.isFrozen).eq(false);
+        expect(binaryPoolData.amp.toString()).eq("500000");
+        expect(binaryPoolData.swap.amp.toString()).eq("500000");
+        expect(binaryPoolData.swap.mode).eq(StableSwapMode.BINARY);
+        expect(binaryPoolData.swap.nTokens.toString()).eq("2");
     });
 });
