@@ -1,4 +1,5 @@
-
+.idea
+.crates
 .anchor
 .DS_Store
 target

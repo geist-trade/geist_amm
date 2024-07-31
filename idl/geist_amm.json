@@ -1,0 +1,689 @@
+{
+  "version": "0.1.0",
+  "name": "geist_amm",
+  "constants": [
+    {
+      "name": "CORE_SEED",
+      "type": "string",
+      "value": "\"core\""
+    },
+    {
+      "name": "BINARY_POOL_SEED",
+      "type": "string",
+      "value": "\"binary_pool\""
+    },
+    {
+      "name": "VAULT_SEED",
+      "type": "string",
+      "value": "\"vault\""
+    }
+  ],
+  "instructions": [
+    {
+      "name": "initializeCore",
+      "accounts": [
+        {
+          "name": "superadmin",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "core",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "swapFeeBps",
+          "type": "u64"
+        },
+        {
+          "name": "withdrawFeeBps",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "initializeBinaryPool",
+      "accounts": [
+        {
+          "name": "admin",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "core",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "binaryPool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stablecoinA",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stablecoinB",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lpToken",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lpTokenUserAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stablecoinAVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stablecoinBVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stablecoinAAdminAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stablecoinBAdminAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amp",
+          "type": "u64"
+        },
+        {
+          "name": "initialDepositA",
+          "type": "u64"
+        },
+        {
+          "name": "initialDepositB",
+          "type": "u64"
+        },
+        {
+          "name": "fees",
+          "type": {
+            "defined": "Fees"
+          }
+        }
+      ]
+    },
+    {
+      "name": "initializeMultiPool",
+      "accounts": [
+        {
+          "name": "admin",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "core",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "multiPool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lpToken",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lpTokenAdminAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amp",
+          "type": "u64"
+        },
+        {
+          "name": "nTokens",
+          "type": "u64"
+        },
+        {
+          "name": "initialDeposits",
+          "type": {
+            "vec": "u64"
+          }
+        },
+        {
+          "name": "fees",
+          "type": {
+            "defined": "Fees"
+          }
+        }
+      ]
+    },
+    {
+      "name": "addLiquidity",
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "core",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "multiPool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lpToken",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lpTokenUserAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "poolId",
+          "type": "u64"
+        },
+        {
+          "name": "deposits",
+          "type": {
+            "vec": "u64"
+          }
+        }
+      ]
+    },
+    {
+      "name": "swap",
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "core",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "multiPool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stablecoinInput",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stablecoinOutput",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stablecoinInputVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stablecoinOutputVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stablecoinInputUserAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "stablecoinOutputUserAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "poolId",
+          "type": "u64"
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "minimumReceived",
+          "type": "u64"
+        },
+        {
+          "name": "fromId",
+          "type": "u64"
+        },
+        {
+          "name": "toId",
+          "type": "u64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "BinaryPool",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "index",
+            "type": "u64"
+          },
+          {
+            "name": "admin",
+            "type": "publicKey"
+          },
+          {
+            "name": "stablecoinA",
+            "type": "publicKey"
+          },
+          {
+            "name": "stablecoinB",
+            "type": "publicKey"
+          },
+          {
+            "name": "amp",
+            "type": "u64"
+          },
+          {
+            "name": "isFrozen",
+            "type": "bool"
+          },
+          {
+            "name": "lpToken",
+            "type": "publicKey"
+          },
+          {
+            "name": "swap",
+            "type": {
+              "defined": "StableSwap"
+            }
+          },
+          {
+            "name": "fees",
+            "type": {
+              "defined": "Fees"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Core",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "nextPoolId",
+            "type": "u64"
+          },
+          {
+            "name": "superadmin",
+            "type": "publicKey"
+          },
+          {
+            "name": "swapFeeBps",
+            "type": "u64"
+          },
+          {
+            "name": "withdrawFeeBps",
+            "type": "u64"
+          },
+          {
+            "name": "supportedStablecoins",
+            "type": {
+              "vec": "publicKey"
+            }
+          },
+          {
+            "name": "withdrawOnlyStablecoins",
+            "type": {
+              "vec": "publicKey"
+            }
+          },
+          {
+            "name": "isFrozen",
+            "type": "bool"
+          },
+          {
+            "name": "totalPools",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MultiPool",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "index",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "admin",
+            "type": "publicKey"
+          },
+          {
+            "name": "stablecoins",
+            "type": {
+              "vec": "publicKey"
+            }
+          },
+          {
+            "name": "amp",
+            "type": "u64"
+          },
+          {
+            "name": "isFrozen",
+            "type": "bool"
+          },
+          {
+            "name": "lpToken",
+            "type": "publicKey"
+          },
+          {
+            "name": "swap",
+            "type": {
+              "defined": "StableSwap"
+            }
+          },
+          {
+            "name": "fees",
+            "type": {
+              "defined": "Fees"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "types": [
+    {
+      "name": "Fees",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "liquidityProvisionFeeBps",
+            "type": "u64"
+          },
+          {
+            "name": "liquidityRemovalFeeBps",
+            "type": "u64"
+          },
+          {
+            "name": "swapFeeBps",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "StableSwap",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "amp",
+            "type": "u64"
+          },
+          {
+            "name": "nTokens",
+            "type": "u64"
+          },
+          {
+            "name": "mode",
+            "type": {
+              "defined": "StableSwapMode"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "StableSwapMode",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "BINARY"
+          },
+          {
+            "name": "MULTI"
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidCallbackError",
+      "msg": "InvalidCallbackError"
+    },
+    {
+      "code": 6001,
+      "name": "StablecoinNotSupported",
+      "msg": "StablecoinNotSupported"
+    },
+    {
+      "code": 6002,
+      "name": "Frozen",
+      "msg": "Frozen"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidOracle",
+      "msg": "InvalidOracle"
+    },
+    {
+      "code": 6004,
+      "name": "DuplicatedMints",
+      "msg": "DuplicatedMints"
+    },
+    {
+      "code": 6005,
+      "name": "NotEnoughTokens",
+      "msg": "NotEnoughTokens"
+    },
+    {
+      "code": 6006,
+      "name": "CastFailed",
+      "msg": "CastFailed"
+    },
+    {
+      "code": 6007,
+      "name": "MathOverflow",
+      "msg": "MathOverflow"
+    },
+    {
+      "code": 6008,
+      "name": "InvariantPrecisionNotFound",
+      "msg": "InvariantPrecisionNotFound"
+    },
+    {
+      "code": 6009,
+      "name": "DivisionByZero",
+      "msg": "DivisionByZero"
+    },
+    {
+      "code": 6010,
+      "name": "PoolTokensCountOutOfBound",
+      "msg": "PoolTokensCountOutOfBound"
+    },
+    {
+      "code": 6011,
+      "name": "InvalidInputLength",
+      "msg": "InvalidInputLength"
+    },
+    {
+      "code": 6012,
+      "name": "AmplificationCoefficientOutOfBound",
+      "msg": "AmplificationCoefficientOutOfBound"
+    },
+    {
+      "code": 6013,
+      "name": "LpTokenPreMinted",
+      "msg": "LpTokenPreMinted"
+    },
+    {
+      "code": 6014,
+      "name": "InvalidMintAuthority",
+      "msg": "InvalidMintAuthority"
+    },
+    {
+      "code": 6015,
+      "name": "InvalidFreezeAuthority",
+      "msg": "InvalidFreezeAuthority"
+    },
+    {
+      "code": 6016,
+      "name": "LpTokenNotInitialized",
+      "msg": "LpTokenNotInitialized"
+    },
+    {
+      "code": 6017,
+      "name": "InvalidRemainingAccountsSchema",
+      "msg": "InvalidRemainingAccountsSchema"
+    },
+    {
+      "code": 6018,
+      "name": "InvalidTokenAccountOwner",
+      "msg": "InvalidTokenAccountOwner"
+    },
+    {
+      "code": 6019,
+      "name": "InvalidTokenAccountMint",
+      "msg": "InvalidTokenAccountMint"
+    },
+    {
+      "code": 6020,
+      "name": "InvalidVault",
+      "msg": "InvalidVault"
+    },
+    {
+      "code": 6021,
+      "name": "InvalidTokenAccount",
+      "msg": "InvalidTokenAccount"
+    },
+    {
+      "code": 6022,
+      "name": "AtaNotInitialized",
+      "msg": "AtaNotInitialized"
+    },
+    {
+      "code": 6023,
+      "name": "NotEnoughFunds",
+      "msg": "NotEnoughFunds"
+    },
+    {
+      "code": 6024,
+      "name": "InvalidInput",
+      "msg": "InvalidInput"
+    },
+    {
+      "code": 6025,
+      "name": "PoolIdMismatch",
+      "msg": "PoolIdMismatch"
+    },
+    {
+      "code": 6026,
+      "name": "PoolFrozen",
+      "msg": "PoolFrozen"
+    },
+    {
+      "code": 6027,
+      "name": "NotEnoughLiquidity",
+      "msg": "NotEnoughLiquidity"
+    },
+    {
+      "code": 6028,
+      "name": "ProtocolFrozen",
+      "msg": "ProtocolFrozen"
+    },
+    {
+      "code": 6029,
+      "name": "SlippageExceeded",
+      "msg": "SlippageExceeded"
+    }
+  ],
+  "metadata": {
+    "address": "AVzr6agjgPNhh4i4bTRLt9rLv48Nj4v5qKxMvgYty21n",
+    "origin": "anchor",
+    "binaryVersion": "0.29.0",
+    "libVersion": "0.29.0"
+  }
+}

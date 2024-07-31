@@ -221,7 +221,7 @@ impl AddLiquidity<'_> {
                 self.multi_pool.key().as_ref(),
                 stablecoin_mint.key().as_ref()
             ], 
-            &program::Geist::id()
+            &program::GeistAmm::id()
         );
 
         require!(

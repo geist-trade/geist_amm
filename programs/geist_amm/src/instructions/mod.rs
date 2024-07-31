@@ -12,3 +12,9 @@ pub use add_liquidity::*;
 
 pub mod swap;
 pub use swap::*;
+
+pub mod add_stablecoin;
+pub use add_stablecoin::*;
+
+pub mod disable_stablecoin;
+pub use disable_stablecoin::*;

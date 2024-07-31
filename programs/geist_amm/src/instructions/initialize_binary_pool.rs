@@ -14,7 +14,7 @@ pub fn initialize_binary_pool(
     fees: Fees
 ) -> Result<()> {
     let admin = &ctx.accounts.admin;
-    let core = &ctx.accounts.core;
+    let core = &mut ctx.accounts.core;
     let binary_pool = &mut ctx.accounts.binary_pool;
     
     let lp_token = &ctx.accounts.lp_token;
@@ -108,6 +108,9 @@ pub fn initialize_binary_pool(
         ),
         initial_deposit_b
     )?;
+
+    core.total_pools += 1;
+    core.next_pool_id += 1;
 
     Ok(())
 }
@@ -212,7 +215,7 @@ pub struct InitializeBinaryPool<'info> {
 
     #[account(
         mut,
-        associated_token::mint = stablecoin_a,
+        associated_token::mint = stablecoin_b,
         associated_token::authority = admin,
         constraint = stablecoin_b_admin_ata.amount >= initial_deposit_b @ GeistError::NotEnoughTokens
     )]

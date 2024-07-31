@@ -8,6 +8,9 @@ pub enum GeistError {
     #[msg("StablecoinNotSupported")]
     StablecoinNotSupported,
 
+    #[msg("StablecoinAlreadySupported")]
+    StablecoinAlreadySupported,
+
     #[msg("Frozen")]
     Frozen,
 
@@ -90,5 +93,8 @@ pub enum GeistError {
     ProtocolFrozen,
 
     #[msg("SlippageExceeded")]
-    SlippageExceeded
+    SlippageExceeded,
+
+    #[msg("InvalidSuperadmin")]
+    SuperadminMismatch,
 }

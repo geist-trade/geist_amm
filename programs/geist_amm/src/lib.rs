@@ -18,7 +18,9 @@ use crate::states::*;
 declare_id!("AVzr6agjgPNhh4i4bTRLt9rLv48Nj4v5qKxMvgYty21n");
 
 #[program]
-pub mod geist {
+pub mod geist_amm {
+    use errors::GeistError;
+
     use super::*;
 
     pub fn initialize_core(
@@ -31,6 +33,18 @@ pub mod geist {
             swap_fee_bps,
             withdraw_fee_bps
         )
+    }
+
+    pub fn add_stablecoin(
+        ctx: Context<AddStablecoin>
+    ) -> Result<()> {
+        instructions::add_stablecoin(ctx)
+    }
+
+    pub fn disable_stablecoin(
+        ctx: Context<DisableStablecoin>
+    ) -> Result<()> {
+        instructions::disable_stablecoin(ctx)
     }
 
     pub fn initialize_binary_pool(
@@ -82,16 +96,16 @@ pub mod geist {
         pool_id: u64,
         amount: u64,
         minimum_received: u64,
-        from_id: usize,
-        to_id: usize
+        from_id: u64,
+        to_id: u64
     ) -> Result<()> {
         instructions::swap(
             ctx,
             pool_id,
             amount,
             minimum_received,
-            from_id,
-            to_id
+            from_id.try_into().map_err(|_| GeistError::InvalidInput)?,
+            to_id.try_into().map_err(|_| GeistError::InvalidInput)?
         )
     }
 }
