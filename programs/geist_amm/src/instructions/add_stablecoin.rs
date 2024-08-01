@@ -75,7 +75,7 @@ pub struct AddStablecoin<'info> {
     #[account(
         mut,
         // Same stablecoin cannot be added twice.
-        constraint = !core.supported_stablecoins.contains(&stablecoin.key()) 
+        constraint = !core.supported_stablecoins.contains(&stablecoin.key()) @ GeistError::StablecoinAlreadySupported
     )]
     pub stablecoin: Account<'info, Mint>,
 

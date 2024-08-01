@@ -7,9 +7,15 @@ use anchor_spl::token::{
     Transfer,
     transfer,
     MintTo,
-    mint_to
+    mint_to,
+    initialize_account3,
+    InitializeAccount3,
 };
 use anchor_spl::associated_token::get_associated_token_address;
+use anchor_lang::system_program::{
+    create_account,
+    CreateAccount
+};
 use crate::constants::*;
 use crate::program;
 use crate::states::*;
@@ -24,8 +30,11 @@ pub fn initialize_multi_pool<'a>(
 ) -> Result<()> {
     let admin = &ctx.accounts.admin;
     let lp_token = &ctx.accounts.lp_token;
+    let core = &ctx.accounts.core;
     let token_program = &ctx.accounts.token_program;
+    let system_program = &ctx.accounts.system_program;
     let lp_token_admin_ata = &ctx.accounts.lp_token_admin_ata;
+    let multi_pool = &ctx.accounts.multi_pool;
 
     // Remaining accounts have to be provided in the following schema:
     // (stablecoin, stablecoin_vault, stablecoin_admin_ata)
@@ -41,66 +50,128 @@ pub fn initialize_multi_pool<'a>(
 
     // Only support initialization of pools with up to 8 tokens
     require!(
-        n_tokens < 8,
+        n_tokens <= 8,
         GeistError::InvalidInput
     );
 
-    let groups_count = (groups.len() % 3) as usize;
+    let groups_count = (groups.len() / 3) as usize;
 
     // Require user to provide correct number 
     // of account groups and correct length of deposit array.
     // No deposit == zeros.
     require!(
-        groups.len() % 3 == (n_tokens as usize) && deposits.len() == (n_tokens as usize),
+        groups_count == (n_tokens as usize) && 
+        deposits.len() == (n_tokens as usize),
         GeistError::InvalidInput
     );
+
+    let signer_seeds = &[
+        BINARY_POOL_SEED.as_bytes(),
+        &core.next_pool_id.to_le_bytes(),
+        &[ctx.bumps.multi_pool]
+    ];
 
     let mut stablecoins: Vec<Pubkey> = Vec::new();
     let mut balances: Vec<u64> = Vec::new();
     for n in 0..groups_count {
-        // Stablecoin mint
+        // Validate stablecoin mint
         let stablecoin_mint_account_info = &groups[n * 3];
         ctx.accounts.validate_stablecoin_mint(stablecoin_mint_account_info.key)?;
-
-        let stablecoin_mint_data = stablecoin_mint_account_info.try_borrow_mut_data()?;
-        let stablecoin_mint = Mint::try_deserialize(&mut stablecoin_mint_data.as_ref())?;
         stablecoins.push(stablecoin_mint_account_info.key());
 
-        // Stablecoin vault
-        let stablecoin_vault_account_info = &groups[n * 3 + 1];
-        let stablecoin_vault_data = stablecoin_vault_account_info.try_borrow_mut_data()?;
-        let stablecoin_vault = TokenAccount::try_deserialize(&mut stablecoin_vault_data.as_ref())?;
+        // Validate stablecoin data, make sure it's Mint account
+        // Initialize new scope so RefMut is dropped, we'll need to re-borrow it later
+        {
+            let stablecoin_mint_data = stablecoin_mint_account_info.try_borrow_mut_data()?;
+            Mint::try_deserialize(
+                &mut stablecoin_mint_data.as_ref()
+            )?;
+        }
 
-        balances.push(stablecoin_vault.amount);
-        
-        ctx.accounts.validate_stablecoin_vault(
-            stablecoin_vault, 
-            stablecoin_mint_account_info.key,
+        // Stablecoin vault + PDA validation
+        let stablecoin_vault_account_info = &groups[n * 3 + 1];
+        let vault_bump = ctx.accounts.validate_stablecoin_vault_and_rederive_bump(
+            &stablecoin_vault_account_info.key,
             stablecoin_mint_account_info.key
         )?;
 
-        /// Stablecoin admin ata
-        let stablecoin_admin_ata_account_info = &groups[n * 3 + 2];
-        let stablecoin_admin_ata_data = stablecoin_admin_ata_account_info.try_borrow_mut_data()?;
-        let stablecoin_admin_ata = TokenAccount::try_deserialize(&mut stablecoin_admin_ata_data.as_ref())?;
+        let rent = Rent::get()?;
+        let lamports = rent.minimum_balance(165);
 
-        ctx.accounts.validate_stablecoin_admin_ata(
-            &stablecoin_admin_ata,
-            stablecoin_admin_ata_account_info.key,
-            stablecoin_mint_account_info.key,
-            deposits[n]
+        let signer_seeds = &[
+            VAULT_SEED.as_bytes(),
+            &multi_pool.key().to_bytes(),
+            &stablecoin_mint_account_info.key.to_bytes(),
+            &[vault_bump]
+        ];
+
+        // Create stablecoin vault
+        create_account(
+            CpiContext::new_with_signer(
+                system_program.to_account_info(), 
+                CreateAccount {
+                    from: admin.to_account_info(),
+                    to: stablecoin_vault_account_info.clone()
+                },
+                &[signer_seeds]
+            ),
+            lamports,
+            165,
+            &token_program.key()
         )?;
+
+        // Initialize stablecoin vault token account
+        initialize_account3(
+            CpiContext::new_with_signer(
+                token_program.to_account_info(), 
+                InitializeAccount3 {
+                    account: stablecoin_vault_account_info.clone(),
+                    mint: stablecoin_mint_account_info.clone(),
+                    authority: multi_pool.to_account_info()
+                },
+                &[signer_seeds]
+            )
+        )?;
+
+        // Initialize new scope to drop RefMut at the end. Push balances to array.
+        {
+            let stablecoin_vault_data = stablecoin_vault_account_info.try_borrow_mut_data()?;
+            let stablecoin_vault = TokenAccount::try_deserialize(
+                &mut stablecoin_vault_data.as_ref()
+            )?;
+            balances.push(stablecoin_vault.amount);
+        }
+
+        msg!("Validated & pushed vault balance.");
+
+        // Stablecoin admin ata
+        let stablecoin_admin_ata_account_info = &groups[n * 3 + 2];
+
+        // New scope to validate the account. Drop RefMut at the end, cause we need to re-borrow it in next CPI.
+        {
+            let stablecoin_admin_ata_data = stablecoin_admin_ata_account_info.try_borrow_mut_data()?;
+            let stablecoin_admin_ata = TokenAccount::try_deserialize(&mut stablecoin_admin_ata_data.as_ref())?;
+
+            ctx.accounts.validate_stablecoin_admin_ata(
+                &stablecoin_admin_ata,
+                stablecoin_admin_ata_account_info.key,
+                stablecoin_mint_account_info.key,
+                deposits[n]
+            )?;
+        }
+
+        msg!("Validated admin's stablecoin ATA.");
 
         // If user deposits this token, transfer to LP.
         let deposit = deposits[n];
 
         // TODO: Only validate accounts if we use them for deposits?
-        if (deposit > 0) {
+        if deposit > 0 {
             transfer(
                 CpiContext::new(
-                    token_program.clone().to_account_info(), 
+                    token_program.to_account_info(), 
                     Transfer {
-                        authority: stablecoin_admin_ata_account_info.clone(),
+                        authority: admin.to_account_info(),
                         from: stablecoin_admin_ata_account_info.clone(),
                         to: stablecoin_vault_account_info.clone()
                     }
@@ -110,7 +181,6 @@ pub fn initialize_multi_pool<'a>(
         }
     }
 
-    let core = &mut ctx.accounts.core;
     let stable_swap = StableSwap::new(amp, n_tokens)?;
     let multi_pool = &mut ctx.accounts.multi_pool;
 
@@ -131,12 +201,6 @@ pub fn initialize_multi_pool<'a>(
             lp_token.supply
         )?;
 
-    let signer_seeds = &[
-        BINARY_POOL_SEED.as_bytes(),
-        &core.next_pool_id.to_le_bytes(),
-        &[ctx.bumps.multi_pool]
-    ];
-
     mint_to(
         CpiContext::new_with_signer(
             token_program.to_account_info(), 
@@ -150,6 +214,7 @@ pub fn initialize_multi_pool<'a>(
         lp_tokens
     )?;
 
+    let core = &mut ctx.accounts.core;
     core.next_pool_id += 1;
     core.total_pools += 1;
 
@@ -158,8 +223,10 @@ pub fn initialize_multi_pool<'a>(
 
 #[derive(Accounts)]
 #[instruction(
+    amp: u64,
     n_tokens: u64,
     deposits: Vec<u64>,
+    fees: Fees
 )]
 pub struct InitializeMultiPool<'info> {
     #[account(
@@ -206,6 +273,9 @@ pub struct InitializeMultiPool<'info> {
     pub lp_token_admin_ata: Account<'info, TokenAccount>,
 
     #[account()]
+    pub rent: Sysvar<'info, Rent>,
+
+    #[account()]
     pub token_program: Program<'info, Token>,
 
     #[account()]
@@ -227,25 +297,13 @@ impl InitializeMultiPool<'_> {
         Ok(())
     }
 
-    pub fn validate_stablecoin_vault(
+    pub fn validate_stablecoin_vault_and_rederive_bump(
         &self,
-        vault: TokenAccount,
         vault_key: &Pubkey,
         stablecoin_mint: &Pubkey
-    ) -> Result<()> {
-        // Vault must be owned by the LP.
-        require!(
-            vault.owner == self.multi_pool.key(),
-            GeistError::InvalidTokenAccountOwner
-        );
-
-        require!(
-            vault.mint == *stablecoin_mint,
-            GeistError::InvalidTokenAccountMint
-        );
-
+    ) -> Result<u8> {
         // Rederive from bare seeds and compare.
-        let (rederived_vault, _) = Pubkey::find_program_address(
+        let (rederived_vault, bump) = Pubkey::find_program_address(
             &[
                 VAULT_SEED.as_bytes(),
                 self.multi_pool.key().as_ref(),
@@ -259,7 +317,7 @@ impl InitializeMultiPool<'_> {
             GeistError::InvalidVault
         );
 
-        Ok(())
+        Ok(bump)
     }
 
     pub fn validate_stablecoin_admin_ata(

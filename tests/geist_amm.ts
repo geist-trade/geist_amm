@@ -1,20 +1,30 @@
 import * as anchor from "@coral-xyz/anchor";
 import {BN, Program} from "@coral-xyz/anchor";
 import {GeistAmm} from "../target/types/geist_amm";
-import {LAMPORTS_PER_SOL, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, Transaction} from "@solana/web3.js";
-import {BinaryPool, Core, StableSwapMode} from "../sdk";
+import {
+    LAMPORTS_PER_SOL,
+    PublicKey,
+    SystemProgram,
+    SYSVAR_RENT_PUBKEY,
+    Transaction, TransactionInstruction,
+    TransactionMessage, VersionedTransaction
+} from "@solana/web3.js";
+import {BinaryPool, Core, coreBeet, StableSwapMode} from "../sdk";
 import {assert, expect} from "chai";
 import createToken from "./helpers/createToken";
 import {
-    AuthorityType,
-    createAssociatedTokenAccountInstruction, getAccount,
-    getAssociatedTokenAddressSync,
+    AuthorityType, createAccount,
+    createAssociatedTokenAccountInstruction, createInitializeAccountInstruction, getAccount,
+    getAssociatedTokenAddressSync, MINT_SIZE,
     TOKEN_PROGRAM_ID
 } from "@solana/spl-token";
 import mintTokens from "./helpers/mintTokens";
 import transferAuthority from "./helpers/transferAuthority";
 import checkLPTokens from "./stable_swap/checkLPTokens";
 import calculateLPTokens from "./stable_swap/calculateLPTokens";
+import createLookupTables from "./helpers/createLookupTables";
+import sleep from "./helpers/sleep";
+import signAndSendTransaction from "./helpers/signAndSendTransaction";
 
 describe("geist_amm", () => {
     const provider = anchor.AnchorProvider.local();
@@ -338,5 +348,183 @@ describe("geist_amm", () => {
         expect(binaryPoolData.swap.amp.toString()).eq("500000");
         expect(binaryPoolData.swap.mode).eq(StableSwapMode.BINARY);
         expect(binaryPoolData.swap.nTokens.toString()).eq("2");
+    });
+
+    it('Initializes multi pool', async () => {
+
+        const coreData = await Core.fromAccountAddress(
+            provider.connection,
+            core
+        );
+
+        const [multiPool] = PublicKey.findProgramAddressSync(
+            [
+                Buffer.from("binary_pool"),
+                new BN(coreData.nextPoolId).toArrayLike(Buffer, "le", 8)
+            ],
+            program.programId
+        );
+
+        const tokens: PublicKey[] = [];
+        const remainingAccounts: PublicKey[] = [];
+
+        for (let i = 0; i < 8; i++) {
+            let token = await createToken(
+                provider.connection,
+                provider
+            );
+
+            await program
+                .methods
+                .addStablecoin()
+                .accounts({
+                    core,
+                    superadmin: provider.publicKey,
+                    stablecoin: token,
+                    systemProgram: SystemProgram.programId,
+                    rent: SYSVAR_RENT_PUBKEY
+                })
+                .rpc();
+
+            await mintTokens(
+                token,
+                provider,
+                100_000 * LAMPORTS_PER_SOL
+            );
+
+            tokens.push(token);
+            remainingAccounts.push(token);
+
+            const seeds =  [
+                    Buffer.from("vault"),
+                    multiPool.toBuffer(),
+                    token.toBuffer()
+            ];
+
+            const [vault] = PublicKey.findProgramAddressSync(
+                seeds,
+                program.programId
+            );
+            remainingAccounts.push(vault);
+
+            const ata = getAssociatedTokenAddressSync(
+                token,
+                provider.publicKey
+            );
+
+            remainingAccounts.push(ata);
+        }
+
+        let lpToken = await createToken(
+            provider.connection,
+            provider
+        );
+
+        await transferAuthority(
+            lpToken,
+            provider,
+            AuthorityType.MintTokens,
+            multiPool
+        );
+
+        await transferAuthority(
+            lpToken,
+            provider,
+            AuthorityType.FreezeAccount,
+            null
+        );
+
+        const lpTokenUserAta = getAssociatedTokenAddressSync(
+            lpToken,
+            provider.publicKey
+        );
+
+        const lpTokenAtaIx = createAssociatedTokenAccountInstruction(
+            provider.publicKey,
+            lpTokenUserAta,
+            provider.publicKey,
+            lpToken
+        );
+
+        const ix = await program
+            .methods
+            .initializeMultiPool(
+                new BN(300_000),
+                new BN(tokens.length),
+                tokens.map(_ => new BN(Math.floor(Math.random() * 100000) * LAMPORTS_PER_SOL)),
+                {
+                    swapFeeBps: new BN(0),
+                    liquidityProvisionFeeBps: new BN(0),
+                    liquidityRemovalFeeBps: new BN(0)
+                }
+            )
+            .accounts({
+                core,
+                lpToken,
+                admin: provider.publicKey,
+                systemProgram: SystemProgram.programId,
+                tokenProgram: TOKEN_PROGRAM_ID,
+                multiPool,
+                lpTokenAdminAta: lpTokenUserAta
+            })
+            .remainingAccounts(remainingAccounts.map(acc => {
+                return {
+                    pubkey: acc,
+                    isSigner: false,
+                    isWritable: true
+                }
+            }))
+            .instruction();
+
+        const lookupTable = await createLookupTables(
+            provider,
+            [
+                // Accounts that are always used
+                core,
+                TOKEN_PROGRAM_ID,
+                SystemProgram.programId,
+                // Accounts that are specific to transaction
+                // We can derive first 253 pools and put them into lookup table,
+                // so first 253 pools don't need to create new lookup tables.
+                multiPool,
+                ...remainingAccounts
+            ]
+        );
+
+        await sleep(5);
+        const lookupTableData = await provider.connection.getAddressLookupTable(lookupTable);
+
+        const {
+            lastValidBlockHeight,
+            blockhash
+        } = await provider.connection.getLatestBlockhash();
+
+        // for (let i = 0; i < 8; i++) {
+        //     // This initializes vaults.
+        //     const preMessage = new TransactionMessage({
+        //         payerKey: provider.publicKey,
+        //         recentBlockhash: blockhash,
+        //         instructions: [instructions[i * 2], instructions[i * 2 + 1]]
+        //     }).compileToV0Message();
+        //
+        //     await signAndSendTransaction(preMessage, provider);
+        // }
+        // console.log("Vaults initialized.");
+
+        // This initalizes actual LP.
+        const message = new TransactionMessage({
+            payerKey: provider.publicKey,
+            recentBlockhash: blockhash,
+            instructions: [lpTokenAtaIx, ix]
+        }).compileToV0Message([lookupTableData.value]);
+
+        await signAndSendTransaction(message, provider);
+
+        let postTxCoreData = await Core.fromAccountAddress(
+            provider.connection,
+            core
+        );
+
+        expect(postTxCoreData.nextPoolId.toString()).eq("2");
     });
 });
