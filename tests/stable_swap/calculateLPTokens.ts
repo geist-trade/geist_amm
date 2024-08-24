@@ -1,31 +1,45 @@
 import BN from "bn.js";
-import {PoolState} from "./checkLPTokens";
 import calculateInvariant from "./calculateInvariant";
 
 export default function calculateLPTokens(
-    amountsIn: BN[],
-    poolState: PoolState
-): BN {
-    const { totalSupply, reserves, amplificationCoefficient } = poolState;
-    const n = reserves.length;
-
-    // Calculate the invariant D before adding liquidity
-    const D0 = calculateInvariant(reserves, amplificationCoefficient);
-
-    // Handle the case where the pool is empty (D0 = 0)
-    if (D0.isZero()) {
-        // For an empty pool, mint LP tokens equal to compute_d(amountsIn, amplificationCoefficient)
-        return calculateInvariant(amountsIn, amplificationCoefficient);
+    balances: BN[],
+    deposits: BN[],
+    amp: BN,
+    lpTokenSupply: BN
+) {
+    if (balances.length !== deposits.length) {
+        throw new Error("InvalidInput");
     }
 
-    // Calculate new balances after adding liquidity
-    const newBalances = reserves.map((reserve, i) => reserve.add(amountsIn[i]));
+    if (lpTokenSupply.eq(new BN((0)))) {
+        const newBalances = balances.map((balance, index) => {
+            let deposit = deposits[index];
+            return balance.add(deposit);
+        });
 
-    // Calculate the invariant D after adding liquidity
-    const D1 = calculateInvariant(newBalances, amplificationCoefficient);
+        let lpTokens = calculateInvariant(
+            newBalances,
+            amp
+        );
 
-    // Calculate the amount of LP tokens to mint
-    const mintAmount = totalSupply.mul(D1.sub(D0)).div(D0);
+        return lpTokens;
+    }
 
-    return mintAmount;
+    const currentInvariant = calculateInvariant(
+        balances,
+        amp
+    );
+
+    const newBalances = balances.map((balance, index) => {
+        let deposit = deposits[index];
+        return balance.add(deposit);
+    });
+
+    const newInvariant = calculateInvariant(newBalances, amp);
+
+    let lpTokens = lpTokenSupply
+        .mul(newInvariant.sub(currentInvariant))
+        .div(currentInvariant);
+
+    return lpTokens;
 }

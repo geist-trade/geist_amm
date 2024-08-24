@@ -97,4 +97,10 @@ pub enum GeistError {
 
     #[msg("InvalidSuperadmin")]
     SuperadminMismatch,
+
+    #[msg("StablecoinWithdrawOnly")]
+    StablecoinWithdrawOnly,
+
+    #[msg("InsufficientBalanceForWithdrawal")]
+    InsufficientBalanceForWithdrawal,
 }

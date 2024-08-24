@@ -518,6 +518,9 @@ impl StableSwap {
         balances: &Vec<u64>,
         lp_token_supply: u64
     ) -> Result<u64> {
+        msg!("lp token supply: {}", lp_token_supply);
+        msg!("deposits: {}, balances: {}", deposits.len(), balances.len());
+
         if deposits.len() != balances.len() {
             return Err(GeistError::InvalidInputLength.into());
         }
@@ -539,6 +542,7 @@ impl StableSwap {
         }
 
         let current_d = self.compute_d(balances)?;
+        msg!("current d: {}", current_d);
 
         let new_balances = balances.iter().zip(deposits.iter())
             .map(|(&balance, &deposit)| balance
@@ -548,6 +552,7 @@ impl StableSwap {
             .collect::<Result<Vec<u64>>>()?;
 
         let new_d = self.compute_d(&new_balances)?;
+        msg!("new d: {}", new_d);
 
         let lp_tokens: u64 = U256::from(lp_token_supply)
             .checked_mul(
@@ -561,6 +566,22 @@ impl StableSwap {
             .try_into()
             .map_err(|_| GeistError::MathOverflow)?;
 
+
         Ok(lp_tokens)
+    }
+
+    pub fn compute_tokens_on_withdrawal(
+        &self,
+        balances: &Vec<u64>,
+        lp_token_supply: u64,
+        lp_token_withdrawal: u64,
+    ) -> Result<Vec<u64>> { 
+        let total_pool_share_bps = lp_token_withdrawal * 10_000 / lp_token_supply;
+        let tokens = balances
+            .iter()
+            .map(| balance | balance * total_pool_share_bps / 10_000)
+            .collect::<Vec<u64>>();
+
+        Ok(tokens)
     }
 }

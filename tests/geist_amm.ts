@@ -9,13 +9,13 @@ import {
     Transaction, TransactionInstruction,
     TransactionMessage, VersionedTransaction
 } from "@solana/web3.js";
-import {BinaryPool, Core, coreBeet, StableSwapMode} from "../sdk";
+import {BinaryPool, Core, coreBeet, MultiPool, StableSwapMode} from "../sdk";
 import {assert, expect} from "chai";
 import createToken from "./helpers/createToken";
 import {
     AuthorityType, createAccount,
     createAssociatedTokenAccountInstruction, createInitializeAccountInstruction, getAccount,
-    getAssociatedTokenAddressSync, MINT_SIZE,
+    getAssociatedTokenAddressSync, getMint, MINT_SIZE,
     TOKEN_PROGRAM_ID
 } from "@solana/spl-token";
 import mintTokens from "./helpers/mintTokens";
@@ -25,6 +25,8 @@ import calculateLPTokens from "./stable_swap/calculateLPTokens";
 import createLookupTables from "./helpers/createLookupTables";
 import sleep from "./helpers/sleep";
 import signAndSendTransaction from "./helpers/signAndSendTransaction";
+import requestComputeUnits from "./helpers/requestComputeUnits";
+import parseBn from "./helpers/parseBn";
 
 describe("geist_amm", () => {
     const provider = anchor.AnchorProvider.local();
@@ -304,17 +306,15 @@ describe("geist_amm", () => {
 
         let lpTokensShouldReceive = calculateLPTokens(
             [
+                new BN(0),
+                new BN(0)
+            ],
+            [
                 new BN(80_000 * LAMPORTS_PER_SOL),
                 new BN(80_000 * LAMPORTS_PER_SOL),
             ],
-            {
-                amplificationCoefficient: new BN(500_000),
-                reserves: [
-                    new BN(0),
-                    new BN(0)
-                ],
-                totalSupply: new BN(0)
-            }
+            new BN(500_000),
+            new BN(0)
         );
 
         expect(lpTokensShouldReceive.toString()).eq(userLpTokenAccountData.amount.toString());
@@ -451,7 +451,7 @@ describe("geist_amm", () => {
             .initializeMultiPool(
                 new BN(300_000),
                 new BN(tokens.length),
-                tokens.map(_ => new BN(Math.floor(Math.random() * 100000) * LAMPORTS_PER_SOL)),
+                tokens.map(_ => new BN(Math.floor(Math.random() * 50_000) * LAMPORTS_PER_SOL)),
                 {
                     swapFeeBps: new BN(0),
                     liquidityProvisionFeeBps: new BN(0),
@@ -499,18 +499,6 @@ describe("geist_amm", () => {
             blockhash
         } = await provider.connection.getLatestBlockhash();
 
-        // for (let i = 0; i < 8; i++) {
-        //     // This initializes vaults.
-        //     const preMessage = new TransactionMessage({
-        //         payerKey: provider.publicKey,
-        //         recentBlockhash: blockhash,
-        //         instructions: [instructions[i * 2], instructions[i * 2 + 1]]
-        //     }).compileToV0Message();
-        //
-        //     await signAndSendTransaction(preMessage, provider);
-        // }
-        // console.log("Vaults initialized.");
-
         // This initalizes actual LP.
         const message = new TransactionMessage({
             payerKey: provider.publicKey,
@@ -526,5 +514,202 @@ describe("geist_amm", () => {
         );
 
         expect(postTxCoreData.nextPoolId.toString()).eq("2");
+    });
+
+    it('Adds liquidity to multi pool.', async () => {
+        const preCoreData = await Core.fromAccountAddress(
+            provider.connection,
+            core
+        );
+
+        const [multiPool] = PublicKey.findProgramAddressSync(
+            [
+                Buffer.from("binary_pool"),
+                new BN(1).toArrayLike(Buffer, "le", 8)
+            ],
+            program.programId
+        );
+
+        const preMultiPoolData = await MultiPool.fromAccountAddress(
+            provider.connection,
+            multiPool
+        );
+
+        const {
+            lpToken,
+            stablecoins
+        } = await MultiPool.fromAccountAddress(
+            provider.connection,
+            multiPool
+        );
+
+        const preBalances: BN[] = [];
+        const atas: PublicKey[] = [];
+        const preUserBalances: BN[] = [];
+
+        const remainingAccounts = (await Promise.all(
+            stablecoins.map(async (stablecoin, index) => {
+                const seeds =  [
+                    Buffer.from("vault"),
+                    multiPool.toBuffer(),
+                    stablecoin.toBuffer()
+                ];
+
+                const [vault] = PublicKey.findProgramAddressSync(
+                    seeds,
+                    program.programId
+                );
+
+                const vaultData = await getAccount(
+                    provider.connection,
+                    vault
+                );
+
+                preBalances[index] = new BN(vaultData.amount.toString());
+
+                const ata = getAssociatedTokenAddressSync(
+                    stablecoin,
+                    provider.publicKey
+                );
+
+                atas[index] = ata;
+
+                const ataData = await getAccount(
+                    provider.connection,
+                    ata
+                );
+
+                preUserBalances[index] = new BN(ataData.amount.toString());
+
+                return [stablecoin, vault, ata];
+            })
+        )).flat();
+
+        const lpTokenUserAta = getAssociatedTokenAddressSync(
+            lpToken,
+            provider.publicKey
+        );
+
+        const userLpTokenAccountDataPre = await getAccount(
+            provider.connection,
+            lpTokenUserAta
+        );
+
+        const deposits = stablecoins.map(_ => {
+            let deposit = Math.floor(Math.random() * 10) % 2 == 0;
+            if (!deposit) return new BN(0);
+            return new BN(Math.floor(Math.random() * 20_000) * LAMPORTS_PER_SOL);
+        });
+
+        let lpTokensData = await getMint(
+            provider.connection,
+            lpToken
+        );
+
+        // Expect updated LP token balance for user
+        let lpTokensShouldReceive = calculateLPTokens(
+            preBalances,
+            deposits,
+            new BN(preMultiPoolData.amp),
+            new BN(lpTokensData.supply.toString())
+        );
+
+        const ix = await program
+            .methods
+            .addLiquidity(
+                new BN(1),
+                deposits
+            )
+            .accounts({
+                core,
+                multiPool,
+                lpToken,
+                tokenProgram: TOKEN_PROGRAM_ID,
+                lpTokenUserAta,
+                user: provider.publicKey
+            })
+            .remainingAccounts(remainingAccounts.map(pubkey => ({
+                isWritable: true,
+                isSigner: false,
+                pubkey
+            })))
+            .instruction();
+
+        const {
+            lastValidBlockHeight,
+            blockhash
+        } = await provider.connection.getLatestBlockhash();
+
+        const lookupTable = await createLookupTables(
+            provider,
+            [
+                // Accounts that are always used
+                core,
+                TOKEN_PROGRAM_ID,
+                SystemProgram.programId,
+                // Accounts that are specific to transaction
+                // We can derive first 253 pools and put them into lookup table,
+                // so first 253 pools don't need to create new lookup tables.
+                multiPool,
+                ...remainingAccounts
+            ]
+        );
+
+        // Have to sleep, otherwise getting:
+        // invalid transaction: Transaction address table lookup uses an invalid index.
+        await sleep(5);
+        const { value: lookupTableData } = await provider.connection.getAddressLookupTable(lookupTable);
+
+        const message = new TransactionMessage({
+            payerKey: provider.publicKey,
+            recentBlockhash: blockhash,
+            instructions: [ix, requestComputeUnits(500_000)]
+        }).compileToV0Message([lookupTableData]);
+
+        const txId = await signAndSendTransaction(message, provider);
+        const {
+            meta: {
+                logMessages
+            }
+        } = await provider.connection.getParsedTransaction(txId, { commitment: "confirmed", maxSupportedTransactionVersion: 0 });
+
+        const postCoreData = await Core.fromAccountAddress(
+            provider.connection,
+            core
+        );
+
+        lpTokensData = await getMint(
+            provider.connection,
+            lpToken
+        );
+
+        const userLpTokenAccountDataPost = await getAccount(
+            provider.connection,
+            lpTokenUserAta
+        );
+
+        expect(
+            (new BN(userLpTokenAccountDataPre.amount.toString())).add(lpTokensShouldReceive).toString()
+        ).eq(userLpTokenAccountDataPost.amount.toString());
+
+        for (let i = 0; i < atas.length; i++) {
+            const ata = atas[i];
+
+            const postTxAtaData = await getAccount(
+                provider.connection,
+                ata
+            );
+
+            expect(postTxAtaData.amount.toString()).eq(
+                preUserBalances[i].sub(deposits[i]).toString()
+            );
+        }
+
+    });
+
+    it("Removes liquidity from the multi pool.", async () => {
+        program
+            .methods
+            .liquidi
     });
 });

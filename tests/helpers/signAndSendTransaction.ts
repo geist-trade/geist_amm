@@ -4,6 +4,7 @@ import {AnchorProvider} from "@coral-xyz/anchor";
 export default async function signAndSendTransaction(
     message: MessageV0,
     provider: AnchorProvider,
+    skipPreflight?: boolean,
     signers?: Keypair[]
 ) {
     const {
@@ -18,7 +19,7 @@ export default async function signAndSendTransaction(
 
     const txid = await provider.connection.sendRawTransaction(
         signed.serialize(),
-        { skipPreflight: false }
+        { skipPreflight }
     );
 
     await provider.connection.confirmTransaction({

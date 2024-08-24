@@ -2,18 +2,29 @@ use anchor_lang::prelude::*;
 use crate::states::*;
 use crate::constants::*;
 
+#[derive(AnchorSerialize, AnchorDeserialize)]
+pub struct InitializeCoreArgs {
+    pub platform_fee_bps: u64
+}
+
 pub fn initialize_core(
     ctx: Context<InitializeCore>,
-    swap_fee_bps: u64,
-    withdraw_fee_bps: u64,
+    args: InitializeCoreArgs
 ) -> Result<()> {
     let core = &mut ctx.accounts.core;
     let superadmin = &mut ctx.accounts.superadmin;
 
+    let InitializeCoreArgs {
+        platform_fee_bps
+    } = args;
+
+    core.next_pool_id = 0;
+    core.supported_stablecoins = Vec::new();
+    core.withdraw_only_stablecoins = Vec::new();
+
+    core.update_fee(platform_fee_bps);
     core.set_new_superadmin(superadmin.key());
     core.unfreeze();
-    core.update_swap_fee(swap_fee_bps);
-    core.update_withdrawal_fee(withdraw_fee_bps);
 
     Ok(())
 }

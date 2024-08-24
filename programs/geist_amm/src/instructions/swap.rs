@@ -13,15 +13,29 @@ use anchor_spl::token::spl_token::state::AccountState;
 use crate::MultiPool;
 use crate::program;
 
-pub fn swap(
-    ctx: Context<Swap>,
-    pool_id: u64,
+#[derive(AnchorDeserialize, AnchorSerialize)]
+pub struct SwapArgs {
+    pub pool_id: u64,
     amount: u64,
     minimum_received: u64,
-    from_id: usize, // Indexes in the multi_pool.stablecoins vector.
+    from_id: usize,
     to_id: usize
+}
+
+pub fn swap(
+    ctx: Context<Swap>,
+    args: SwapArgs
 ) -> Result<()> {
-    let multi_pool = &ctx.accounts.multi_pool;
+
+    let SwapArgs {
+        amount,
+        from_id,
+        to_id,
+        minimum_received,
+        pool_id
+    } = args;
+
+    let pool = &ctx.accounts.pool;
     let stablecoin_lps = ctx.remaining_accounts;
     let token_program = &ctx.accounts.token_program;
 
@@ -34,14 +48,13 @@ pub fn swap(
 
     // Require users to provide same amount of LP accounts as stablecoins specified in multi_pool.
     require!(
-        stablecoin_lps.len() == multi_pool.stablecoins.len(),
+        stablecoin_lps.len() == pool.stablecoins.len(),
         GeistError::InvalidRemainingAccountsSchema
     );
 
     let mut balances: Vec<u64> = Vec::new();
-
     for n in 0..stablecoin_lps.len() {
-        let stablecoin_mint = multi_pool.stablecoins[n];
+        let stablecoin_mint = pool.stablecoins[n];
         let lp_account_info = &stablecoin_lps[n];
         let lp_data = lp_account_info.try_borrow_mut_data()?;
         let lp = TokenAccount::try_deserialize(&mut lp_data.as_ref())?;
@@ -53,17 +66,20 @@ pub fn swap(
             &stablecoin_mint
         )?;
 
-        balances[n] = lp.amount;
+        balances.push(lp.amount);
     }
+
+    let fee = pool.fees.swap_fee_bps * amount / 10_000;
+    let input_amount = amount - fee;
 
     let SwapOut {
         out_amount,
-        fee
-    } = multi_pool.swap.swap_exact_in(
+        fee: _
+    } = pool.swap.swap_exact_in(
         &balances, 
         from_id, 
         to_id, 
-        amount
+        input_amount
     )?;
 
     require!(
@@ -71,12 +87,10 @@ pub fn swap(
         GeistError::SlippageExceeded
     );
 
-
-
     let signer_seeds = &[
         BINARY_POOL_SEED.as_bytes(),
-        &multi_pool.index.to_le_bytes(),
-        &[ctx.bumps.multi_pool]
+        &pool.index.to_le_bytes(),
+        &[ctx.bumps.pool]
     ];
 
     // Transfer input to LP.
@@ -97,13 +111,13 @@ pub fn swap(
         CpiContext::new_with_signer(
             token_program.to_account_info(), 
             Transfer {
-                authority: multi_pool.to_account_info(),
+                authority: pool.to_account_info(),
                 from: stablecoin_output_vault.to_account_info(),
                 to: stablecoin_output_user_ata.to_account_info()
             }, 
             &[signer_seeds]
         ), 
-        amount
+        out_amount
     )?;
 
     Ok(())
@@ -111,11 +125,7 @@ pub fn swap(
 
 #[derive(Accounts)]
 #[instruction(
-    pool_id: u64,
-    amount: u64,
-    minimum_received: u64,
-    from_id: usize,
-    to_id: usize
+    args: SwapArgs
 )]
 pub struct Swap<'info> {
     #[account(
@@ -137,26 +147,24 @@ pub struct Swap<'info> {
         mut,
         seeds = [
             BINARY_POOL_SEED.as_bytes(),
-            &pool_id.to_le_bytes()
+            &args.pool_id.to_le_bytes()
         ],
         bump,
-        constraint = multi_pool.index == pool_id @ GeistError::PoolIdMismatch,
-        constraint = !multi_pool.is_frozen @ GeistError::PoolFrozen
+        constraint = pool.index == args.pool_id @ GeistError::PoolIdMismatch,
+        constraint = !pool.is_frozen @ GeistError::PoolFrozen
     )]
-    pub multi_pool: Account<'info, MultiPool>,
+    pub pool: Account<'info, MultiPool>,
 
     #[account(
         mut,
-        constraint = multi_pool.stablecoins.contains(&stablecoin_input.key()) @ GeistError::StablecoinNotSupported,
+        address = pool.stablecoins[args.from_id],
         constraint = core.supported_stablecoins.contains(&stablecoin_input.key()) @ GeistError::StablecoinNotSupported,
-        constraint = multi_pool.stablecoins[from_id] == stablecoin_input.key()
     )]
     pub stablecoin_input: Account<'info, Mint>,
 
     #[account(
         mut,
-        constraint = multi_pool.stablecoins.contains(&stablecoin_output.key()),
-        constraint = multi_pool.stablecoins[to_id] == stablecoin_output.key()
+        address = pool.stablecoins[args.to_id]
     )]
     pub stablecoin_output: Account<'info, Mint>,
 
@@ -164,7 +172,7 @@ pub struct Swap<'info> {
         mut,
         seeds = [
             VAULT_SEED.as_bytes(),
-            multi_pool.key().as_ref(),
+            pool.key().as_ref(),
             stablecoin_input.key().as_ref()
         ],
         bump,
@@ -175,11 +183,11 @@ pub struct Swap<'info> {
         mut,
         seeds = [
             VAULT_SEED.as_bytes(),
-            multi_pool.key().as_ref(),
+            pool.key().as_ref(),
             stablecoin_output.key().as_ref()
         ],
         bump,
-        constraint = stablecoin_output_vault.amount > minimum_received @ GeistError::NotEnoughLiquidity
+        constraint = stablecoin_output_vault.amount > args.minimum_received @ GeistError::NotEnoughLiquidity
     )]
     pub stablecoin_output_vault: Account<'info, TokenAccount>,
 
@@ -187,7 +195,7 @@ pub struct Swap<'info> {
         mut,
         associated_token::mint = stablecoin_input,
         associated_token::authority = user,
-        constraint = stablecoin_input_user_ata.amount > amount @ GeistError::NotEnoughFunds,
+        constraint = stablecoin_input_user_ata.amount > args.amount @ GeistError::NotEnoughFunds,
     )]
     pub stablecoin_input_user_ata: Account<'info, TokenAccount>,
 
@@ -216,7 +224,7 @@ impl Swap<'_> {
         );
 
         require!(
-            self.multi_pool.stablecoins.contains(mint),
+            self.pool.stablecoins.contains(mint),
             GeistError::StablecoinNotSupported
         );
 
@@ -231,7 +239,7 @@ impl Swap<'_> {
     ) -> Result<()> {
         // Vault must be owned by the LP.
         require!(
-            lp.owner == self.multi_pool.key(),
+            lp.owner == self.pool.key(),
             GeistError::InvalidTokenAccountOwner
         );
 
@@ -244,7 +252,7 @@ impl Swap<'_> {
         let (rederived_vault, _) = Pubkey::find_program_address(
             &[
                 VAULT_SEED.as_bytes(),
-                self.multi_pool.key().as_ref(),
+                self.pool.key().as_ref(),
                 stablecoin_mint.key().as_ref()
             ], 
             &program::GeistAmm::id()

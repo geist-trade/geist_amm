@@ -192,6 +192,7 @@ pub fn initialize_multi_pool<'a>(
     multi_pool.lp_token = lp_token.key();
     multi_pool.stablecoins = stablecoins;
     multi_pool.index = core.next_pool_id;
+    multi_pool.bump = ctx.bumps.multi_pool;
 
     let lp_tokens = multi_pool
         .swap
@@ -216,7 +217,6 @@ pub fn initialize_multi_pool<'a>(
 
     let core = &mut ctx.accounts.core;
     core.next_pool_id += 1;
-    core.total_pools += 1;
 
     Ok(())
 }

@@ -8,11 +8,9 @@ pub struct Core {
     // Superadmin is an address authorized to add new stablecoins into the basket.
     pub superadmin: Pubkey, // 32
 
-    // Platform fee taken on each swap, in basepoints.
-    pub swap_fee_bps: u64, // 8
-
-    // Platform fee taken on withdrawal, in basepoints.
-    pub withdraw_fee_bps: u64, // 8
+    // Platform fee taken from the fees collected by liquidity pool.
+    // If pool has 1% fee and platform fee is 25%, effectively platform earns 0.25% of each swap.
+    pub platform_fee_bps: u64,
 
     // Token addresses of all stablecoins supported by the protocol.
     pub supported_stablecoins: Vec<Pubkey>, // 4 + k * 32
@@ -20,29 +18,23 @@ pub struct Core {
     // Token addresses of all stablecoins in withdraw-only mode.
     pub withdraw_only_stablecoins: Vec<Pubkey>, // 4 + k * 32
 
-    // Frozen flag, if present - reject all transactions.
+    // If frozen, break the transaction flow.
     pub is_frozen: bool, // 1
-
-    pub total_pools: u64, // 8
 }
 
 impl Core {
-    pub const INITIAL_SIZE: usize = 8 + 8 + 32 + 8 + 8 + 4 + 4 + 1 + 8;
+    pub const INITIAL_SIZE: usize = 8 + 8 + 32 + 8 + 4 + 4 + 1;
 
     pub fn set_new_superadmin(&mut self, new_superadmin: Pubkey) {
         self.superadmin = new_superadmin;
     }
 
-    pub fn update_swap_fee(&mut self, new_fee_bps: u64) {
-        self.swap_fee_bps = new_fee_bps;
-    }
-
-    pub fn update_withdrawal_fee(&mut self, new_fee_bps: u64) {
-        self.withdraw_fee_bps = new_fee_bps;
-    }
-
     pub fn add_stablecoin(&mut self, new_stablecoin: Pubkey) {
         self.supported_stablecoins.push(new_stablecoin);
+    }
+
+    pub fn update_fee(&mut self, platform_fee_bps: u64) {
+        self.platform_fee_bps = platform_fee_bps;
     }
 
     pub fn disable_stablecoin(&mut self, stablecoin: Pubkey) {

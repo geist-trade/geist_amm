@@ -110,7 +110,6 @@ pub fn initialize_binary_pool(
         initial_deposit_b
     )?;
 
-    core.total_pools += 1;
     core.next_pool_id += 1;
 
     Ok(())
