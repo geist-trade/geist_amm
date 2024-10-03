@@ -58,13 +58,39 @@ createErrorFromNameLookup.set(
 )
 
 /**
+ * StablecoinAlreadySupported: 'StablecoinAlreadySupported'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class StablecoinAlreadySupportedError extends Error {
+  readonly code: number = 0x1772
+  readonly name: string = 'StablecoinAlreadySupported'
+  constructor() {
+    super('StablecoinAlreadySupported')
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, StablecoinAlreadySupportedError)
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(
+  0x1772,
+  () => new StablecoinAlreadySupportedError()
+)
+createErrorFromNameLookup.set(
+  'StablecoinAlreadySupported',
+  () => new StablecoinAlreadySupportedError()
+)
+
+/**
  * Frozen: 'Frozen'
  *
  * @category Errors
  * @category generated
  */
 export class FrozenError extends Error {
-  readonly code: number = 0x1772
+  readonly code: number = 0x1773
   readonly name: string = 'Frozen'
   constructor() {
     super('Frozen')
@@ -74,7 +100,7 @@ export class FrozenError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1772, () => new FrozenError())
+createErrorFromCodeLookup.set(0x1773, () => new FrozenError())
 createErrorFromNameLookup.set('Frozen', () => new FrozenError())
 
 /**
@@ -84,7 +110,7 @@ createErrorFromNameLookup.set('Frozen', () => new FrozenError())
  * @category generated
  */
 export class InvalidOracleError extends Error {
-  readonly code: number = 0x1773
+  readonly code: number = 0x1774
   readonly name: string = 'InvalidOracle'
   constructor() {
     super('InvalidOracle')
@@ -94,7 +120,7 @@ export class InvalidOracleError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1773, () => new InvalidOracleError())
+createErrorFromCodeLookup.set(0x1774, () => new InvalidOracleError())
 createErrorFromNameLookup.set('InvalidOracle', () => new InvalidOracleError())
 
 /**
@@ -104,7 +130,7 @@ createErrorFromNameLookup.set('InvalidOracle', () => new InvalidOracleError())
  * @category generated
  */
 export class DuplicatedMintsError extends Error {
-  readonly code: number = 0x1774
+  readonly code: number = 0x1775
   readonly name: string = 'DuplicatedMints'
   constructor() {
     super('DuplicatedMints')
@@ -114,7 +140,7 @@ export class DuplicatedMintsError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1774, () => new DuplicatedMintsError())
+createErrorFromCodeLookup.set(0x1775, () => new DuplicatedMintsError())
 createErrorFromNameLookup.set(
   'DuplicatedMints',
   () => new DuplicatedMintsError()
@@ -127,7 +153,7 @@ createErrorFromNameLookup.set(
  * @category generated
  */
 export class NotEnoughTokensError extends Error {
-  readonly code: number = 0x1775
+  readonly code: number = 0x1776
   readonly name: string = 'NotEnoughTokens'
   constructor() {
     super('NotEnoughTokens')
@@ -137,7 +163,7 @@ export class NotEnoughTokensError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1775, () => new NotEnoughTokensError())
+createErrorFromCodeLookup.set(0x1776, () => new NotEnoughTokensError())
 createErrorFromNameLookup.set(
   'NotEnoughTokens',
   () => new NotEnoughTokensError()
@@ -150,7 +176,7 @@ createErrorFromNameLookup.set(
  * @category generated
  */
 export class CastFailedError extends Error {
-  readonly code: number = 0x1776
+  readonly code: number = 0x1777
   readonly name: string = 'CastFailed'
   constructor() {
     super('CastFailed')
@@ -160,7 +186,7 @@ export class CastFailedError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1776, () => new CastFailedError())
+createErrorFromCodeLookup.set(0x1777, () => new CastFailedError())
 createErrorFromNameLookup.set('CastFailed', () => new CastFailedError())
 
 /**
@@ -170,7 +196,7 @@ createErrorFromNameLookup.set('CastFailed', () => new CastFailedError())
  * @category generated
  */
 export class MathOverflowError extends Error {
-  readonly code: number = 0x1777
+  readonly code: number = 0x1778
   readonly name: string = 'MathOverflow'
   constructor() {
     super('MathOverflow')
@@ -180,7 +206,7 @@ export class MathOverflowError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1777, () => new MathOverflowError())
+createErrorFromCodeLookup.set(0x1778, () => new MathOverflowError())
 createErrorFromNameLookup.set('MathOverflow', () => new MathOverflowError())
 
 /**
@@ -190,7 +216,7 @@ createErrorFromNameLookup.set('MathOverflow', () => new MathOverflowError())
  * @category generated
  */
 export class InvariantPrecisionNotFoundError extends Error {
-  readonly code: number = 0x1778
+  readonly code: number = 0x1779
   readonly name: string = 'InvariantPrecisionNotFound'
   constructor() {
     super('InvariantPrecisionNotFound')
@@ -201,7 +227,7 @@ export class InvariantPrecisionNotFoundError extends Error {
 }
 
 createErrorFromCodeLookup.set(
-  0x1778,
+  0x1779,
   () => new InvariantPrecisionNotFoundError()
 )
 createErrorFromNameLookup.set(
@@ -216,7 +242,7 @@ createErrorFromNameLookup.set(
  * @category generated
  */
 export class DivisionByZeroError extends Error {
-  readonly code: number = 0x1779
+  readonly code: number = 0x177a
   readonly name: string = 'DivisionByZero'
   constructor() {
     super('DivisionByZero')
@@ -226,7 +252,7 @@ export class DivisionByZeroError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1779, () => new DivisionByZeroError())
+createErrorFromCodeLookup.set(0x177a, () => new DivisionByZeroError())
 createErrorFromNameLookup.set('DivisionByZero', () => new DivisionByZeroError())
 
 /**
@@ -236,7 +262,7 @@ createErrorFromNameLookup.set('DivisionByZero', () => new DivisionByZeroError())
  * @category generated
  */
 export class PoolTokensCountOutOfBoundError extends Error {
-  readonly code: number = 0x177a
+  readonly code: number = 0x177b
   readonly name: string = 'PoolTokensCountOutOfBound'
   constructor() {
     super('PoolTokensCountOutOfBound')
@@ -247,7 +273,7 @@ export class PoolTokensCountOutOfBoundError extends Error {
 }
 
 createErrorFromCodeLookup.set(
-  0x177a,
+  0x177b,
   () => new PoolTokensCountOutOfBoundError()
 )
 createErrorFromNameLookup.set(
@@ -262,7 +288,7 @@ createErrorFromNameLookup.set(
  * @category generated
  */
 export class InvalidInputLengthError extends Error {
-  readonly code: number = 0x177b
+  readonly code: number = 0x177c
   readonly name: string = 'InvalidInputLength'
   constructor() {
     super('InvalidInputLength')
@@ -272,7 +298,7 @@ export class InvalidInputLengthError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x177b, () => new InvalidInputLengthError())
+createErrorFromCodeLookup.set(0x177c, () => new InvalidInputLengthError())
 createErrorFromNameLookup.set(
   'InvalidInputLength',
   () => new InvalidInputLengthError()
@@ -285,7 +311,7 @@ createErrorFromNameLookup.set(
  * @category generated
  */
 export class AmplificationCoefficientOutOfBoundError extends Error {
-  readonly code: number = 0x177c
+  readonly code: number = 0x177d
   readonly name: string = 'AmplificationCoefficientOutOfBound'
   constructor() {
     super('AmplificationCoefficientOutOfBound')
@@ -296,7 +322,7 @@ export class AmplificationCoefficientOutOfBoundError extends Error {
 }
 
 createErrorFromCodeLookup.set(
-  0x177c,
+  0x177d,
   () => new AmplificationCoefficientOutOfBoundError()
 )
 createErrorFromNameLookup.set(
@@ -311,7 +337,7 @@ createErrorFromNameLookup.set(
  * @category generated
  */
 export class LpTokenPreMintedError extends Error {
-  readonly code: number = 0x177d
+  readonly code: number = 0x177e
   readonly name: string = 'LpTokenPreMinted'
   constructor() {
     super('LpTokenPreMinted')
@@ -321,7 +347,7 @@ export class LpTokenPreMintedError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x177d, () => new LpTokenPreMintedError())
+createErrorFromCodeLookup.set(0x177e, () => new LpTokenPreMintedError())
 createErrorFromNameLookup.set(
   'LpTokenPreMinted',
   () => new LpTokenPreMintedError()
@@ -334,7 +360,7 @@ createErrorFromNameLookup.set(
  * @category generated
  */
 export class InvalidMintAuthorityError extends Error {
-  readonly code: number = 0x177e
+  readonly code: number = 0x177f
   readonly name: string = 'InvalidMintAuthority'
   constructor() {
     super('InvalidMintAuthority')
@@ -344,7 +370,7 @@ export class InvalidMintAuthorityError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x177e, () => new InvalidMintAuthorityError())
+createErrorFromCodeLookup.set(0x177f, () => new InvalidMintAuthorityError())
 createErrorFromNameLookup.set(
   'InvalidMintAuthority',
   () => new InvalidMintAuthorityError()
@@ -357,7 +383,7 @@ createErrorFromNameLookup.set(
  * @category generated
  */
 export class InvalidFreezeAuthorityError extends Error {
-  readonly code: number = 0x177f
+  readonly code: number = 0x1780
   readonly name: string = 'InvalidFreezeAuthority'
   constructor() {
     super('InvalidFreezeAuthority')
@@ -367,7 +393,7 @@ export class InvalidFreezeAuthorityError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x177f, () => new InvalidFreezeAuthorityError())
+createErrorFromCodeLookup.set(0x1780, () => new InvalidFreezeAuthorityError())
 createErrorFromNameLookup.set(
   'InvalidFreezeAuthority',
   () => new InvalidFreezeAuthorityError()
@@ -380,7 +406,7 @@ createErrorFromNameLookup.set(
  * @category generated
  */
 export class LpTokenNotInitializedError extends Error {
-  readonly code: number = 0x1780
+  readonly code: number = 0x1781
   readonly name: string = 'LpTokenNotInitialized'
   constructor() {
     super('LpTokenNotInitialized')
@@ -390,7 +416,7 @@ export class LpTokenNotInitializedError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1780, () => new LpTokenNotInitializedError())
+createErrorFromCodeLookup.set(0x1781, () => new LpTokenNotInitializedError())
 createErrorFromNameLookup.set(
   'LpTokenNotInitialized',
   () => new LpTokenNotInitializedError()
@@ -403,7 +429,7 @@ createErrorFromNameLookup.set(
  * @category generated
  */
 export class InvalidRemainingAccountsSchemaError extends Error {
-  readonly code: number = 0x1781
+  readonly code: number = 0x1782
   readonly name: string = 'InvalidRemainingAccountsSchema'
   constructor() {
     super('InvalidRemainingAccountsSchema')
@@ -414,7 +440,7 @@ export class InvalidRemainingAccountsSchemaError extends Error {
 }
 
 createErrorFromCodeLookup.set(
-  0x1781,
+  0x1782,
   () => new InvalidRemainingAccountsSchemaError()
 )
 createErrorFromNameLookup.set(
@@ -429,7 +455,7 @@ createErrorFromNameLookup.set(
  * @category generated
  */
 export class InvalidTokenAccountOwnerError extends Error {
-  readonly code: number = 0x1782
+  readonly code: number = 0x1783
   readonly name: string = 'InvalidTokenAccountOwner'
   constructor() {
     super('InvalidTokenAccountOwner')
@@ -439,7 +465,7 @@ export class InvalidTokenAccountOwnerError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1782, () => new InvalidTokenAccountOwnerError())
+createErrorFromCodeLookup.set(0x1783, () => new InvalidTokenAccountOwnerError())
 createErrorFromNameLookup.set(
   'InvalidTokenAccountOwner',
   () => new InvalidTokenAccountOwnerError()
@@ -452,7 +478,7 @@ createErrorFromNameLookup.set(
  * @category generated
  */
 export class InvalidTokenAccountMintError extends Error {
-  readonly code: number = 0x1783
+  readonly code: number = 0x1784
   readonly name: string = 'InvalidTokenAccountMint'
   constructor() {
     super('InvalidTokenAccountMint')
@@ -462,7 +488,7 @@ export class InvalidTokenAccountMintError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1783, () => new InvalidTokenAccountMintError())
+createErrorFromCodeLookup.set(0x1784, () => new InvalidTokenAccountMintError())
 createErrorFromNameLookup.set(
   'InvalidTokenAccountMint',
   () => new InvalidTokenAccountMintError()
@@ -475,7 +501,7 @@ createErrorFromNameLookup.set(
  * @category generated
  */
 export class InvalidVaultError extends Error {
-  readonly code: number = 0x1784
+  readonly code: number = 0x1785
   readonly name: string = 'InvalidVault'
   constructor() {
     super('InvalidVault')
@@ -485,7 +511,7 @@ export class InvalidVaultError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1784, () => new InvalidVaultError())
+createErrorFromCodeLookup.set(0x1785, () => new InvalidVaultError())
 createErrorFromNameLookup.set('InvalidVault', () => new InvalidVaultError())
 
 /**
@@ -495,7 +521,7 @@ createErrorFromNameLookup.set('InvalidVault', () => new InvalidVaultError())
  * @category generated
  */
 export class InvalidTokenAccountError extends Error {
-  readonly code: number = 0x1785
+  readonly code: number = 0x1786
   readonly name: string = 'InvalidTokenAccount'
   constructor() {
     super('InvalidTokenAccount')
@@ -505,7 +531,7 @@ export class InvalidTokenAccountError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1785, () => new InvalidTokenAccountError())
+createErrorFromCodeLookup.set(0x1786, () => new InvalidTokenAccountError())
 createErrorFromNameLookup.set(
   'InvalidTokenAccount',
   () => new InvalidTokenAccountError()
@@ -518,7 +544,7 @@ createErrorFromNameLookup.set(
  * @category generated
  */
 export class AtaNotInitializedError extends Error {
-  readonly code: number = 0x1786
+  readonly code: number = 0x1787
   readonly name: string = 'AtaNotInitialized'
   constructor() {
     super('AtaNotInitialized')
@@ -528,7 +554,7 @@ export class AtaNotInitializedError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1786, () => new AtaNotInitializedError())
+createErrorFromCodeLookup.set(0x1787, () => new AtaNotInitializedError())
 createErrorFromNameLookup.set(
   'AtaNotInitialized',
   () => new AtaNotInitializedError()
@@ -541,7 +567,7 @@ createErrorFromNameLookup.set(
  * @category generated
  */
 export class NotEnoughFundsError extends Error {
-  readonly code: number = 0x1787
+  readonly code: number = 0x1788
   readonly name: string = 'NotEnoughFunds'
   constructor() {
     super('NotEnoughFunds')
@@ -551,7 +577,7 @@ export class NotEnoughFundsError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1787, () => new NotEnoughFundsError())
+createErrorFromCodeLookup.set(0x1788, () => new NotEnoughFundsError())
 createErrorFromNameLookup.set('NotEnoughFunds', () => new NotEnoughFundsError())
 
 /**
@@ -561,7 +587,7 @@ createErrorFromNameLookup.set('NotEnoughFunds', () => new NotEnoughFundsError())
  * @category generated
  */
 export class InvalidInputError extends Error {
-  readonly code: number = 0x1788
+  readonly code: number = 0x1789
   readonly name: string = 'InvalidInput'
   constructor() {
     super('InvalidInput')
@@ -571,7 +597,7 @@ export class InvalidInputError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1788, () => new InvalidInputError())
+createErrorFromCodeLookup.set(0x1789, () => new InvalidInputError())
 createErrorFromNameLookup.set('InvalidInput', () => new InvalidInputError())
 
 /**
@@ -581,7 +607,7 @@ createErrorFromNameLookup.set('InvalidInput', () => new InvalidInputError())
  * @category generated
  */
 export class PoolIdMismatchError extends Error {
-  readonly code: number = 0x1789
+  readonly code: number = 0x178a
   readonly name: string = 'PoolIdMismatch'
   constructor() {
     super('PoolIdMismatch')
@@ -591,7 +617,7 @@ export class PoolIdMismatchError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x1789, () => new PoolIdMismatchError())
+createErrorFromCodeLookup.set(0x178a, () => new PoolIdMismatchError())
 createErrorFromNameLookup.set('PoolIdMismatch', () => new PoolIdMismatchError())
 
 /**
@@ -601,7 +627,7 @@ createErrorFromNameLookup.set('PoolIdMismatch', () => new PoolIdMismatchError())
  * @category generated
  */
 export class PoolFrozenError extends Error {
-  readonly code: number = 0x178a
+  readonly code: number = 0x178b
   readonly name: string = 'PoolFrozen'
   constructor() {
     super('PoolFrozen')
@@ -611,7 +637,7 @@ export class PoolFrozenError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x178a, () => new PoolFrozenError())
+createErrorFromCodeLookup.set(0x178b, () => new PoolFrozenError())
 createErrorFromNameLookup.set('PoolFrozen', () => new PoolFrozenError())
 
 /**
@@ -621,7 +647,7 @@ createErrorFromNameLookup.set('PoolFrozen', () => new PoolFrozenError())
  * @category generated
  */
 export class NotEnoughLiquidityError extends Error {
-  readonly code: number = 0x178b
+  readonly code: number = 0x178c
   readonly name: string = 'NotEnoughLiquidity'
   constructor() {
     super('NotEnoughLiquidity')
@@ -631,7 +657,7 @@ export class NotEnoughLiquidityError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x178b, () => new NotEnoughLiquidityError())
+createErrorFromCodeLookup.set(0x178c, () => new NotEnoughLiquidityError())
 createErrorFromNameLookup.set(
   'NotEnoughLiquidity',
   () => new NotEnoughLiquidityError()
@@ -644,7 +670,7 @@ createErrorFromNameLookup.set(
  * @category generated
  */
 export class ProtocolFrozenError extends Error {
-  readonly code: number = 0x178c
+  readonly code: number = 0x178d
   readonly name: string = 'ProtocolFrozen'
   constructor() {
     super('ProtocolFrozen')
@@ -654,7 +680,7 @@ export class ProtocolFrozenError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x178c, () => new ProtocolFrozenError())
+createErrorFromCodeLookup.set(0x178d, () => new ProtocolFrozenError())
 createErrorFromNameLookup.set('ProtocolFrozen', () => new ProtocolFrozenError())
 
 /**
@@ -664,7 +690,7 @@ createErrorFromNameLookup.set('ProtocolFrozen', () => new ProtocolFrozenError())
  * @category generated
  */
 export class SlippageExceededError extends Error {
-  readonly code: number = 0x178d
+  readonly code: number = 0x178e
   readonly name: string = 'SlippageExceeded'
   constructor() {
     super('SlippageExceeded')
@@ -674,10 +700,82 @@ export class SlippageExceededError extends Error {
   }
 }
 
-createErrorFromCodeLookup.set(0x178d, () => new SlippageExceededError())
+createErrorFromCodeLookup.set(0x178e, () => new SlippageExceededError())
 createErrorFromNameLookup.set(
   'SlippageExceeded',
   () => new SlippageExceededError()
+)
+
+/**
+ * SuperadminMismatch: 'InvalidSuperadmin'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class SuperadminMismatchError extends Error {
+  readonly code: number = 0x178f
+  readonly name: string = 'SuperadminMismatch'
+  constructor() {
+    super('InvalidSuperadmin')
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, SuperadminMismatchError)
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x178f, () => new SuperadminMismatchError())
+createErrorFromNameLookup.set(
+  'SuperadminMismatch',
+  () => new SuperadminMismatchError()
+)
+
+/**
+ * StablecoinWithdrawOnly: 'StablecoinWithdrawOnly'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class StablecoinWithdrawOnlyError extends Error {
+  readonly code: number = 0x1790
+  readonly name: string = 'StablecoinWithdrawOnly'
+  constructor() {
+    super('StablecoinWithdrawOnly')
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, StablecoinWithdrawOnlyError)
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x1790, () => new StablecoinWithdrawOnlyError())
+createErrorFromNameLookup.set(
+  'StablecoinWithdrawOnly',
+  () => new StablecoinWithdrawOnlyError()
+)
+
+/**
+ * InsufficientBalanceForWithdrawal: 'InsufficientBalanceForWithdrawal'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class InsufficientBalanceForWithdrawalError extends Error {
+  readonly code: number = 0x1791
+  readonly name: string = 'InsufficientBalanceForWithdrawal'
+  constructor() {
+    super('InsufficientBalanceForWithdrawal')
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, InsufficientBalanceForWithdrawalError)
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(
+  0x1791,
+  () => new InsufficientBalanceForWithdrawalError()
+)
+createErrorFromNameLookup.set(
+  'InsufficientBalanceForWithdrawal',
+  () => new InsufficientBalanceForWithdrawalError()
 )
 
 /**

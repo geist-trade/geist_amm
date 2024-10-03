@@ -7,73 +7,55 @@
 
 import * as beet from '@metaplex-foundation/beet'
 import * as web3 from '@solana/web3.js'
-import {
-  InitializeCoreArgs,
-  initializeCoreArgsBeet,
-} from '../types/InitializeCoreArgs'
 
 /**
  * @category Instructions
- * @category InitializeCore
+ * @category AddStablecoin
  * @category generated
  */
-export type InitializeCoreInstructionArgs = {
-  args: InitializeCoreArgs
-}
-/**
- * @category Instructions
- * @category InitializeCore
- * @category generated
- */
-export const initializeCoreStruct = new beet.BeetArgsStruct<
-  InitializeCoreInstructionArgs & {
-    instructionDiscriminator: number[] /* size: 8 */
-  }
->(
-  [
-    ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
-    ['args', initializeCoreArgsBeet],
-  ],
-  'InitializeCoreInstructionArgs'
+export const addStablecoinStruct = new beet.BeetArgsStruct<{
+  instructionDiscriminator: number[] /* size: 8 */
+}>(
+  [['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)]],
+  'AddStablecoinInstructionArgs'
 )
 /**
- * Accounts required by the _initializeCore_ instruction
+ * Accounts required by the _addStablecoin_ instruction
  *
  * @property [_writable_, **signer**] superadmin
  * @property [_writable_] core
+ * @property [_writable_] stablecoin
  * @category Instructions
- * @category InitializeCore
+ * @category AddStablecoin
  * @category generated
  */
-export type InitializeCoreInstructionAccounts = {
+export type AddStablecoinInstructionAccounts = {
   superadmin: web3.PublicKey
   core: web3.PublicKey
+  stablecoin: web3.PublicKey
+  rent?: web3.PublicKey
   systemProgram?: web3.PublicKey
   anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
-export const initializeCoreInstructionDiscriminator = [
-  26, 107, 177, 14, 71, 136, 11, 91,
+export const addStablecoinInstructionDiscriminator = [
+  184, 160, 218, 168, 41, 5, 46, 54,
 ]
 
 /**
- * Creates a _InitializeCore_ instruction.
+ * Creates a _AddStablecoin_ instruction.
  *
  * @param accounts that will be accessed while the instruction is processed
- * @param args to provide as instruction data to the program
- *
  * @category Instructions
- * @category InitializeCore
+ * @category AddStablecoin
  * @category generated
  */
-export function createInitializeCoreInstruction(
-  accounts: InitializeCoreInstructionAccounts,
-  args: InitializeCoreInstructionArgs,
+export function createAddStablecoinInstruction(
+  accounts: AddStablecoinInstructionAccounts,
   programId = new web3.PublicKey('AVzr6agjgPNhh4i4bTRLt9rLv48Nj4v5qKxMvgYty21n')
 ) {
-  const [data] = initializeCoreStruct.serialize({
-    instructionDiscriminator: initializeCoreInstructionDiscriminator,
-    ...args,
+  const [data] = addStablecoinStruct.serialize({
+    instructionDiscriminator: addStablecoinInstructionDiscriminator,
   })
   const keys: web3.AccountMeta[] = [
     {
@@ -84,6 +66,16 @@ export function createInitializeCoreInstruction(
     {
       pubkey: accounts.core,
       isWritable: true,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.stablecoin,
+      isWritable: true,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.rent ?? web3.SYSVAR_RENT_PUBKEY,
+      isWritable: false,
       isSigner: false,
     },
     {

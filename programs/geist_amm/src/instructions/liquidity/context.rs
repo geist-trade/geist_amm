@@ -47,7 +47,7 @@ pub struct LiquidityManagament<'info> {
         constraint = pool.index == args.pool_id @ GeistError::PoolIdMismatch,
         constraint = !pool.is_frozen @ GeistError::PoolFrozen
     )]
-    pub pool: Account<'info, MultiPool>,
+    pub pool: Account<'info, Pool>,
 
     #[account(
         mut,

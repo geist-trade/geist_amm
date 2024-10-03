@@ -6,19 +6,16 @@
  */
 
 import * as beet from '@metaplex-foundation/beet'
-export type Fees = {
-  swapFeeBps: beet.bignum
-  liquidityRemovalFeeBps: beet.bignum
+export type InitializeCoreArgs = {
+  platformFeeBps: beet.bignum
 }
 
 /**
  * @category userTypes
  * @category generated
  */
-export const feesBeet = new beet.BeetArgsStruct<Fees>(
-  [
-    ['swapFeeBps', beet.u64],
-    ['liquidityRemovalFeeBps', beet.u64],
-  ],
-  'Fees'
-)
+export const initializeCoreArgsBeet =
+  new beet.BeetArgsStruct<InitializeCoreArgs>(
+    [['platformFeeBps', beet.u64]],
+    'InitializeCoreArgs'
+  )

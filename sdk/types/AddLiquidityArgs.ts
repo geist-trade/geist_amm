@@ -6,19 +6,20 @@
  */
 
 import * as beet from '@metaplex-foundation/beet'
-export type Fees = {
-  swapFeeBps: beet.bignum
-  liquidityRemovalFeeBps: beet.bignum
+export type AddLiquidityArgs = {
+  poolId: beet.bignum
+  deposits: beet.bignum[]
 }
 
 /**
  * @category userTypes
  * @category generated
  */
-export const feesBeet = new beet.BeetArgsStruct<Fees>(
-  [
-    ['swapFeeBps', beet.u64],
-    ['liquidityRemovalFeeBps', beet.u64],
-  ],
-  'Fees'
-)
+export const addLiquidityArgsBeet =
+  new beet.FixableBeetArgsStruct<AddLiquidityArgs>(
+    [
+      ['poolId', beet.u64],
+      ['deposits', beet.array(beet.u64)],
+    ],
+    'AddLiquidityArgs'
+  )

@@ -17,12 +17,10 @@ import * as beetSolana from '@metaplex-foundation/beet-solana'
 export type CoreArgs = {
   nextPoolId: beet.bignum
   superadmin: web3.PublicKey
-  swapFeeBps: beet.bignum
-  withdrawFeeBps: beet.bignum
+  platformFeeBps: beet.bignum
   supportedStablecoins: web3.PublicKey[]
   withdrawOnlyStablecoins: web3.PublicKey[]
   isFrozen: boolean
-  totalPools: beet.bignum
 }
 
 export const coreDiscriminator = [90, 167, 99, 154, 192, 227, 13, 62]
@@ -37,12 +35,10 @@ export class Core implements CoreArgs {
   private constructor(
     readonly nextPoolId: beet.bignum,
     readonly superadmin: web3.PublicKey,
-    readonly swapFeeBps: beet.bignum,
-    readonly withdrawFeeBps: beet.bignum,
+    readonly platformFeeBps: beet.bignum,
     readonly supportedStablecoins: web3.PublicKey[],
     readonly withdrawOnlyStablecoins: web3.PublicKey[],
-    readonly isFrozen: boolean,
-    readonly totalPools: beet.bignum
+    readonly isFrozen: boolean
   ) {}
 
   /**
@@ -52,12 +48,10 @@ export class Core implements CoreArgs {
     return new Core(
       args.nextPoolId,
       args.superadmin,
-      args.swapFeeBps,
-      args.withdrawFeeBps,
+      args.platformFeeBps,
       args.supportedStablecoins,
       args.withdrawOnlyStablecoins,
-      args.isFrozen,
-      args.totalPools
+      args.isFrozen
     )
   }
 
@@ -178,19 +172,8 @@ export class Core implements CoreArgs {
         return x
       })(),
       superadmin: this.superadmin.toBase58(),
-      swapFeeBps: (() => {
-        const x = <{ toNumber: () => number }>this.swapFeeBps
-        if (typeof x.toNumber === 'function') {
-          try {
-            return x.toNumber()
-          } catch (_) {
-            return x
-          }
-        }
-        return x
-      })(),
-      withdrawFeeBps: (() => {
-        const x = <{ toNumber: () => number }>this.withdrawFeeBps
+      platformFeeBps: (() => {
+        const x = <{ toNumber: () => number }>this.platformFeeBps
         if (typeof x.toNumber === 'function') {
           try {
             return x.toNumber()
@@ -203,17 +186,6 @@ export class Core implements CoreArgs {
       supportedStablecoins: this.supportedStablecoins,
       withdrawOnlyStablecoins: this.withdrawOnlyStablecoins,
       isFrozen: this.isFrozen,
-      totalPools: (() => {
-        const x = <{ toNumber: () => number }>this.totalPools
-        if (typeof x.toNumber === 'function') {
-          try {
-            return x.toNumber()
-          } catch (_) {
-            return x
-          }
-        }
-        return x
-      })(),
     }
   }
 }
@@ -232,12 +204,10 @@ export const coreBeet = new beet.FixableBeetStruct<
     ['accountDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
     ['nextPoolId', beet.u64],
     ['superadmin', beetSolana.publicKey],
-    ['swapFeeBps', beet.u64],
-    ['withdrawFeeBps', beet.u64],
+    ['platformFeeBps', beet.u64],
     ['supportedStablecoins', beet.array(beetSolana.publicKey)],
     ['withdrawOnlyStablecoins', beet.array(beetSolana.publicKey)],
     ['isFrozen', beet.bool],
-    ['totalPools', beet.u64],
   ],
   Core.fromArgs,
   'Core'

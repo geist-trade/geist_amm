@@ -10,5 +10,5 @@ pub use binary_pool::*;
 pub mod fees;
 pub use fees::*;
 
-pub mod multi_pool;
-pub use multi_pool::*;
+pub mod pool;
+pub use pool::*;

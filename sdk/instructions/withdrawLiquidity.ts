@@ -9,36 +9,36 @@ import * as splToken from '@solana/spl-token'
 import * as beet from '@metaplex-foundation/beet'
 import * as web3 from '@solana/web3.js'
 import {
-  AddLiquidityArgs,
-  addLiquidityArgsBeet,
-} from '../types/AddLiquidityArgs'
+  WithdrawLiquidityArgs,
+  withdrawLiquidityArgsBeet,
+} from '../types/WithdrawLiquidityArgs'
 
 /**
  * @category Instructions
- * @category AddLiquidity
+ * @category WithdrawLiquidity
  * @category generated
  */
-export type AddLiquidityInstructionArgs = {
-  args: AddLiquidityArgs
+export type WithdrawLiquidityInstructionArgs = {
+  args: WithdrawLiquidityArgs
 }
 /**
  * @category Instructions
- * @category AddLiquidity
+ * @category WithdrawLiquidity
  * @category generated
  */
-export const addLiquidityStruct = new beet.FixableBeetArgsStruct<
-  AddLiquidityInstructionArgs & {
+export const withdrawLiquidityStruct = new beet.BeetArgsStruct<
+  WithdrawLiquidityInstructionArgs & {
     instructionDiscriminator: number[] /* size: 8 */
   }
 >(
   [
     ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
-    ['args', addLiquidityArgsBeet],
+    ['args', withdrawLiquidityArgsBeet],
   ],
-  'AddLiquidityInstructionArgs'
+  'WithdrawLiquidityInstructionArgs'
 )
 /**
- * Accounts required by the _addLiquidity_ instruction
+ * Accounts required by the _withdrawLiquidity_ instruction
  *
  * @property [_writable_, **signer**] user
  * @property [_writable_] core
@@ -46,10 +46,10 @@ export const addLiquidityStruct = new beet.FixableBeetArgsStruct<
  * @property [_writable_] lpToken
  * @property [_writable_] lpTokenUserAta
  * @category Instructions
- * @category AddLiquidity
+ * @category WithdrawLiquidity
  * @category generated
  */
-export type AddLiquidityInstructionAccounts = {
+export type WithdrawLiquidityInstructionAccounts = {
   user: web3.PublicKey
   core: web3.PublicKey
   pool: web3.PublicKey
@@ -59,27 +59,27 @@ export type AddLiquidityInstructionAccounts = {
   anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
-export const addLiquidityInstructionDiscriminator = [
-  181, 157, 89, 67, 143, 182, 52, 72,
+export const withdrawLiquidityInstructionDiscriminator = [
+  149, 158, 33, 185, 47, 243, 253, 31,
 ]
 
 /**
- * Creates a _AddLiquidity_ instruction.
+ * Creates a _WithdrawLiquidity_ instruction.
  *
  * @param accounts that will be accessed while the instruction is processed
  * @param args to provide as instruction data to the program
  *
  * @category Instructions
- * @category AddLiquidity
+ * @category WithdrawLiquidity
  * @category generated
  */
-export function createAddLiquidityInstruction(
-  accounts: AddLiquidityInstructionAccounts,
-  args: AddLiquidityInstructionArgs,
+export function createWithdrawLiquidityInstruction(
+  accounts: WithdrawLiquidityInstructionAccounts,
+  args: WithdrawLiquidityInstructionArgs,
   programId = new web3.PublicKey('AVzr6agjgPNhh4i4bTRLt9rLv48Nj4v5qKxMvgYty21n')
 ) {
-  const [data] = addLiquidityStruct.serialize({
-    instructionDiscriminator: addLiquidityInstructionDiscriminator,
+  const [data] = withdrawLiquidityStruct.serialize({
+    instructionDiscriminator: withdrawLiquidityInstructionDiscriminator,
     ...args,
   })
   const keys: web3.AccountMeta[] = [

@@ -16,12 +16,10 @@ pub enum StableSwapMode {
 
 pub struct SwapOut {
     pub out_amount: u64,
-    pub fee: u64,
 }
 
 pub struct SwapIn {
     pub in_amount: u64,
-    pub fee: u64,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, AnchorSerialize, AnchorDeserialize)]
@@ -197,78 +195,62 @@ impl StableSwap {
     // Compute new Y balance given new X balance.
     pub fn compute_y(
         &self,
-        // Vector of all balances in the pool.
         balances: &Vec<u64>,
-        // Index of the X balance in the vec above.
         i: usize,
-        // Index of the Y balance in the vec above
         j: usize,
-        // New X balance
         new_j_balance: u64,
     ) -> Result<U256> {
         let n_balances = U256::from(balances.len() as u32);
-
+    
         let nn = n_balances
             .checked_pow(n_balances)
-            .ok_or(GeistError::MathOverflow)?.into();
-
+            .ok_or(GeistError::MathOverflow)?;
+    
         let ann = U256::from(self.amp)
             .checked_mul(nn)
             .ok_or(GeistError::MathOverflow)?;
-
+    
         let d: U256 = self.compute_d(balances)?;
-
-        let mut product_term = d
+    
+        let mut c = d
             .checked_mul(d)
             .ok_or(GeistError::MathOverflow)?
-            .checked_div(new_j_balance.into())
+            .checked_div(U256::from(new_j_balance))
             .ok_or(GeistError::DivisionByZero)?;
-
-        let mut total_balances = U256::from(new_j_balance);
-
+    
+        let mut sum = U256::from(new_j_balance);
+    
         for (k, &balance) in balances.iter().enumerate() {
             if k != i && k != j {
-                total_balances = total_balances
-                    .checked_add(balance.into())
-                    .ok_or(GeistError::MathOverflow)?;
-
-                product_term = product_term
+                c = c
                     .checked_mul(d)
                     .ok_or(GeistError::MathOverflow)?
-                    .checked_div(balance.into())
+                    .checked_div(U256::from(balance))
                     .ok_or(GeistError::DivisionByZero)?;
+                sum = sum
+                    .checked_add(U256::from(balance))
+                    .ok_or(GeistError::MathOverflow)?;
             }
         }
         
-        product_term = product_term
+        c = c
             .checked_mul(d)
             .ok_or(GeistError::MathOverflow)?
-            .checked_div(
-                ann
-                    .checked_mul(n_balances)
-                    .ok_or(GeistError::MathOverflow)?
-            )
+            .checked_div(ann.checked_mul(n_balances).ok_or(GeistError::MathOverflow)?)
             .ok_or(GeistError::DivisionByZero)?;
-
-        let sum_term: U256 = d
-            .checked_div(ann)
-            .ok_or(GeistError::MathOverflow)?
-            .checked_add(total_balances)
+    
+        let b = sum
+            .checked_add(d.checked_div(ann).ok_or(GeistError::DivisionByZero)?)
             .ok_or(GeistError::MathOverflow)?;
     
         let mut y_prev = d;
         for _ in 0..MAX_ITERATIONS {
-            let y = self.compute_y_next(
-                y_prev, 
-                sum_term, 
-                product_term, 
-                d
-            )?;
-
-            if y.abs_diff(y_prev) <= 1.into() {
+            let y = self.compute_y_next(y_prev, b, c, d)?;
+    
+            if y.abs_diff(y_prev) <= U256::from(1) {
                 return Ok(y);
             }
-
+    
             y_prev = y;
         }
         Err(GeistError::InvariantPrecisionNotFound.into())
@@ -334,13 +316,9 @@ impl StableSwap {
             .checked_sub(1.into())
             .ok_or(GeistError::MathOverflow)?;
 
-        let fee = U256::from(0);
-        let out_amount = dy
-            .checked_sub(fee)
-            .ok_or(GeistError::MathOverflow)?;
+        let out_amount = dy;
         
         Ok(SwapOut {
-            fee: fee.to_u64().ok_or(GeistError::MathOverflow)?,
             out_amount: out_amount.to_u64().ok_or(GeistError::MathOverflow)?
         })
     }
@@ -356,21 +334,13 @@ impl StableSwap {
         // Index in the balances array. Token to be withdrawn.
         out_id: usize,
         // Amount of `from` coming into the swap.
-        out_amount: u64,
-        // Fee taken on the swap, in basepoints.
-        fee_bps: u64,
+        out_amount: u64
     ) -> Result<SwapIn> {
-        let fee = out_amount
-            .checked_mul(fee_bps)
-            .ok_or(GeistError::MathOverflow)?
-            .checked_div(10_000 as u64)
-            .ok_or(GeistError::MathOverflow)?;
-
         // This is real out amount that we need to swap into. Users will
         // still get `out_amount`, the fee will go to the pool.
-        let total_out = out_amount
-            .checked_add(fee)
-            .ok_or(GeistError::MathOverflow)?;
+        let total_out = out_amount;
+
+        msg!("balances: {:?}", balances);
 
         let y = self.compute_y(
             balances,
@@ -381,12 +351,15 @@ impl StableSwap {
                 .ok_or(GeistError::MathOverflow)?,
         )?;
 
+        msg!("y: {}", y);
+
         let dy = y
             .checked_sub(U256::from(balances[in_id]))
             .ok_or(GeistError::MathOverflow)?;
 
+        msg!("dy: {}", dy);
+
         Ok(SwapIn {
-            fee: fee.into(),
             in_amount: dy.to_u64().ok_or(GeistError::MathOverflow)?
         })
     }
@@ -396,7 +369,7 @@ impl StableSwap {
         &self, 
         balances: &Vec<u64>,
         lp_token_supply: u64
-    ) -> Result<U256> {
+    ) -> Result<u64> {
         let d = self.compute_d(balances)?;
         let n = balances.len() as u64;
     
@@ -406,7 +379,7 @@ impl StableSwap {
             .and_then(|x| x.checked_div(U256::from(lp_token_supply)))
             .ok_or(GeistError::MathOverflow)?;
     
-        Ok(virtual_price)
+        Ok(virtual_price.try_to_u64()?)
     }
 
     // Simulate output token price given exact input (specific amount).
@@ -422,7 +395,6 @@ impl StableSwap {
         from_amount: u64,
     ) -> Result<U256> {
         let SwapOut {
-            fee: _,
             out_amount
         } = self.swap_exact_in(
             balances,

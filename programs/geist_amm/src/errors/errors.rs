@@ -103,4 +103,10 @@ pub enum GeistError {
 
     #[msg("InsufficientBalanceForWithdrawal")]
     InsufficientBalanceForWithdrawal,
+
+    #[msg("ZeroBalance")]
+    ZeroBalance,
+
+    #[msg("ZeroInitialDeposit")]
+    ZeroInitialDeposit
 }

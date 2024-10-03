@@ -1,9 +1,9 @@
 export * from './BinaryPool'
 export * from './Core'
-export * from './MultiPool'
+export * from './Pool'
 
 import { BinaryPool } from './BinaryPool'
 import { Core } from './Core'
-import { MultiPool } from './MultiPool'
+import { Pool } from './Pool'
 
-export const accountProviders = { BinaryPool, Core, MultiPool }
+export const accountProviders = { BinaryPool, Core, Pool }

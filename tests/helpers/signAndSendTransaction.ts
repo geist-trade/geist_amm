@@ -14,8 +14,13 @@ export default async function signAndSendTransaction(
 
     const transaction = new VersionedTransaction(message);
 
-    if (signers && signers.length) transaction.sign(signers);
-    const signed = await provider.wallet.signTransaction(transaction);
+    let signed: VersionedTransaction;
+    if (signers && signers.length) {
+        transaction.sign(signers);
+        signed = transaction;
+    } else {
+        signed = await provider.wallet.signTransaction(transaction);
+    }
 
     const txid = await provider.connection.sendRawTransaction(
         signed.serialize(),

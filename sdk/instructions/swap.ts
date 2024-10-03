@@ -8,6 +8,7 @@
 import * as splToken from '@solana/spl-token'
 import * as beet from '@metaplex-foundation/beet'
 import * as web3 from '@solana/web3.js'
+import { SwapArgs, swapArgsBeet } from '../types/SwapArgs'
 
 /**
  * @category Instructions
@@ -15,29 +16,21 @@ import * as web3 from '@solana/web3.js'
  * @category generated
  */
 export type SwapInstructionArgs = {
-  poolId: beet.bignum
-  amount: beet.bignum
-  minimumReceived: beet.bignum
-  fromId: beet.bignum
-  toId: beet.bignum
+  args: SwapArgs
 }
 /**
  * @category Instructions
  * @category Swap
  * @category generated
  */
-export const swapStruct = new beet.BeetArgsStruct<
+export const swapStruct = new beet.FixableBeetArgsStruct<
   SwapInstructionArgs & {
     instructionDiscriminator: number[] /* size: 8 */
   }
 >(
   [
     ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
-    ['poolId', beet.u64],
-    ['amount', beet.u64],
-    ['minimumReceived', beet.u64],
-    ['fromId', beet.u64],
-    ['toId', beet.u64],
+    ['args', swapArgsBeet],
   ],
   'SwapInstructionArgs'
 )
@@ -46,7 +39,7 @@ export const swapStruct = new beet.BeetArgsStruct<
  *
  * @property [_writable_, **signer**] user
  * @property [_writable_] core
- * @property [_writable_] multiPool
+ * @property [_writable_] pool
  * @property [_writable_] stablecoinInput
  * @property [_writable_] stablecoinOutput
  * @property [_writable_] stablecoinInputVault
@@ -60,7 +53,7 @@ export const swapStruct = new beet.BeetArgsStruct<
 export type SwapInstructionAccounts = {
   user: web3.PublicKey
   core: web3.PublicKey
-  multiPool: web3.PublicKey
+  pool: web3.PublicKey
   stablecoinInput: web3.PublicKey
   stablecoinOutput: web3.PublicKey
   stablecoinInputVault: web3.PublicKey
@@ -106,7 +99,7 @@ export function createSwapInstruction(
       isSigner: false,
     },
     {
-      pubkey: accounts.multiPool,
+      pubkey: accounts.pool,
       isWritable: true,
       isSigner: false,
     },
