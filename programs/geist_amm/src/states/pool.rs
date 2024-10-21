@@ -69,31 +69,31 @@ impl Pool {
         token_pool_pda: &AccountInfo<'a>,
         amount: u64
     ) -> Result<()> {
-        mint_compressed_to(
-            CpiContext::new(
-                compressed_token_program.to_account_info(), 
-                MintCompressedToInstruction {
-                    account_compression_authority: account_compression_authority.clone(),
-                    account_compression_program: account_compression_program.clone(),
-                    fee_payer: fee_payer.clone(),
-                    authority: authority.clone(),
-                    cpi_authority_pda: cpi_authority_pda.clone(),
-                    light_system_program: light_system_program.clone(),
-                    merkle_tree: merkle_tree.clone(),
-                    mint: mint.clone(),
-                    noop_program: noop_program.clone(),
-                    registered_program_pda: registered_program_pda.clone(),
-                    self_program: self_program.clone(),
-                    sol_pool_pda: None,
-                    system_program: system_program.clone(),
-                    token_pool_pda: token_pool_pda.clone(),
-                    token_program: token_program.clone()
-                },
-            ),
-            vec![recipient.key()],
-            vec![amount],
-            Some(0)
-        )?;
+        // mint_compressed_to(
+        //     CpiContext::new(
+        //         compressed_token_program.to_account_info(), 
+        //         MintCompressedToInstruction {
+        //             account_compression_authority: account_compression_authority.clone(),
+        //             account_compression_program: account_compression_program.clone(),
+        //             fee_payer: fee_payer.clone(),
+        //             authority: authority.clone(),
+        //             cpi_authority_pda: cpi_authority_pda.clone(),
+        //             light_system_program: light_system_program.clone(),
+        //             merkle_tree: merkle_tree.clone(),
+        //             mint: mint.clone(),
+        //             noop_program: noop_program.clone(),
+        //             registered_program_pda: registered_program_pda.clone(),
+        //             self_program: self_program.clone(),
+        //             sol_pool_pda: None,
+        //             system_program: system_program.clone(),
+        //             token_pool_pda: token_pool_pda.clone(),
+        //             token_program: token_program.clone()
+        //         },
+        //     ),
+        //     vec![recipient.key()],
+        //     vec![amount],
+        //     Some(0)
+        // )?;
 
         Ok(())
     }
@@ -113,20 +113,20 @@ impl Pool {
 
         let signer_seeds = &[];
 
-        create_token_pool(
-            CpiContext::new_with_signer(
-                compressed_token_program.to_account_info(), 
-                CreateTokenPoolInstruction {
-                    cpi_authority_pda: cpi_authority_pda.clone(),
-                    fee_payer: fee_payer.clone(),
-                    mint: mint.clone(),
-                    system_program: system_program.clone(),
-                    token_pool_pda: token_pool_pda.clone(),
-                    token_program: token_program.clone()
-                }, 
-                &[signer_seeds]
-            )
-        )?;
+        // create_token_pool(
+        //     CpiContext::new_with_signer(
+        //         compressed_token_program.to_account_info(), 
+        //         CreateTokenPoolInstruction {
+        //             cpi_authority_pda: cpi_authority_pda.clone(),
+        //             fee_payer: fee_payer.clone(),
+        //             mint: mint.clone(),
+        //             system_program: system_program.clone(),
+        //             token_pool_pda: token_pool_pda.clone(),
+        //             token_program: token_program.clone()
+        //         }, 
+        //         &[signer_seeds]
+        //     )
+        // )?;
 
         Ok(())
     }

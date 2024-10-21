@@ -6,7 +6,7 @@ class Geist {
     public core: PublicKey;
     public connection: Connection;
 
-    private constructor({ connection } : { connection: Connection }) {
+    constructor({ connection } : { connection: Connection }) {
         const [core] = PublicKey.findProgramAddressSync(
             [
                 Buffer.from("core")
@@ -18,16 +18,23 @@ class Geist {
         this.core = core;
     }
 
-    async initializeCore({ superadmin } : { superadmin: PublicKey }) {
+    static async initializeCore({ superadmin, platformFeeBps } : { superadmin: PublicKey, platformFeeBps: number }) {
+        const [core] = PublicKey.findProgramAddressSync(
+            [
+                Buffer.from("core")
+            ],
+            PROGRAM_ID
+        );
+
         const ix = createInitializeCoreInstruction(
             {
-                core: this.core,
+                core: core,
                 superadmin,
                 systemProgram: SystemProgram.programId
             },
             {
                 args: {
-                    platformFeeBps: new BN(0)
+                    platformFeeBps: new BN(platformFeeBps)
                 }
             },
             PROGRAM_ID
