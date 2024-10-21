@@ -44,7 +44,17 @@ export const initializePoolStruct = new beet.FixableBeetArgsStruct<
  * @property [_writable_] core
  * @property [_writable_] pool
  * @property [_writable_] lpToken
+ * @property [] lightLpTokenPool
  * @property [_writable_] lpTokenAdminAta
+ * @property [] merkleTree
+ * @property [] noopProgram
+ * @property [] lightSystemProgram
+ * @property [] accountCompressionProgram
+ * @property [] compressedTokenProgram
+ * @property [] lightCpiAuthority
+ * @property [] lightRegisteredProgram
+ * @property [] selfProgram
+ * @property [] accountCompressionAuthority
  * @category Instructions
  * @category InitializePool
  * @category generated
@@ -54,10 +64,20 @@ export type InitializePoolInstructionAccounts = {
   core: web3.PublicKey
   pool: web3.PublicKey
   lpToken: web3.PublicKey
+  lightLpTokenPool: web3.PublicKey
   lpTokenAdminAta: web3.PublicKey
   rent?: web3.PublicKey
   tokenProgram?: web3.PublicKey
   systemProgram?: web3.PublicKey
+  merkleTree: web3.PublicKey
+  noopProgram: web3.PublicKey
+  lightSystemProgram: web3.PublicKey
+  accountCompressionProgram: web3.PublicKey
+  compressedTokenProgram: web3.PublicKey
+  lightCpiAuthority: web3.PublicKey
+  lightRegisteredProgram: web3.PublicKey
+  selfProgram: web3.PublicKey
+  accountCompressionAuthority: web3.PublicKey
   anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
@@ -106,6 +126,11 @@ export function createInitializePoolInstruction(
       isSigner: false,
     },
     {
+      pubkey: accounts.lightLpTokenPool,
+      isWritable: false,
+      isSigner: false,
+    },
+    {
       pubkey: accounts.lpTokenAdminAta,
       isWritable: true,
       isSigner: false,
@@ -122,6 +147,51 @@ export function createInitializePoolInstruction(
     },
     {
       pubkey: accounts.systemProgram ?? web3.SystemProgram.programId,
+      isWritable: false,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.merkleTree,
+      isWritable: false,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.noopProgram,
+      isWritable: false,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.lightSystemProgram,
+      isWritable: false,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.accountCompressionProgram,
+      isWritable: false,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.compressedTokenProgram,
+      isWritable: false,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.lightCpiAuthority,
+      isWritable: false,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.lightRegisteredProgram,
+      isWritable: false,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.selfProgram,
+      isWritable: false,
+      isSigner: false,
+    },
+    {
+      pubkey: accounts.accountCompressionAuthority,
       isWritable: false,
       isSigner: false,
     },

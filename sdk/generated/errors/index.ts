@@ -779,6 +779,49 @@ createErrorFromNameLookup.set(
 )
 
 /**
+ * ZeroBalance: 'ZeroBalance'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class ZeroBalanceError extends Error {
+  readonly code: number = 0x1792
+  readonly name: string = 'ZeroBalance'
+  constructor() {
+    super('ZeroBalance')
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, ZeroBalanceError)
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x1792, () => new ZeroBalanceError())
+createErrorFromNameLookup.set('ZeroBalance', () => new ZeroBalanceError())
+
+/**
+ * ZeroInitialDeposit: 'ZeroInitialDeposit'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class ZeroInitialDepositError extends Error {
+  readonly code: number = 0x1793
+  readonly name: string = 'ZeroInitialDeposit'
+  constructor() {
+    super('ZeroInitialDeposit')
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, ZeroInitialDepositError)
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x1793, () => new ZeroInitialDepositError())
+createErrorFromNameLookup.set(
+  'ZeroInitialDeposit',
+  () => new ZeroInitialDepositError()
+)
+
+/**
  * Attempts to resolve a custom program error from the provided error code.
  * @category Errors
  * @category generated

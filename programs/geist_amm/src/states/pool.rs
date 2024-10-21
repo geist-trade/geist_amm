@@ -17,6 +17,13 @@ use light_compressed_token::cpi::{
         CreateTokenPoolInstruction
     }
 };
+use crate::borsh;
+
+#[derive(AnchorDeserialize, AnchorSerialize, Clone, Copy, Debug)]
+pub enum TokenMode {
+    SPL,
+    COMPRESSED,
+}
 
 #[account]
 pub struct Pool {
@@ -27,7 +34,8 @@ pub struct Pool {
     pub is_frozen: bool, // 1
     pub lp_token: Pubkey, // 32
     pub swap: StableSwap, // StableSwap::SIZE
-    pub fees: Fees // Fees::SIZE
+    pub fees: Fees, // Fees::SIZE
+    pub token_mode: TokenMode, // 1
 }
 
 impl Pool {
@@ -38,7 +46,8 @@ impl Pool {
         4 +
         1 +
         StableSwap::SIZE as usize +
-        Fees::SIZE as usize;
+        Fees::SIZE as usize +
+        1; // token_mode
 
     pub fn mint_compressed_lp_tokens<'a>(
         &self,

@@ -38,9 +38,19 @@ impl Core {
     }
 
     pub fn disable_stablecoin(&mut self, stablecoin: Pubkey) {
-        let position = self.supported_stablecoins.iter().position(|s| *s == stablecoin).unwrap();
-        self.supported_stablecoins.remove(position);
-        self.withdraw_only_stablecoins.push(stablecoin);
+        let position = self
+            .supported_stablecoins
+            .iter()
+            .position(|s| *s == stablecoin)
+            .unwrap();
+
+        self
+            .supported_stablecoins
+            .remove(position);
+
+        self
+            .withdraw_only_stablecoins
+            .push(stablecoin);
     }
 
     pub fn reenable_stablecoin(&mut self, stablecoin: Pubkey) {

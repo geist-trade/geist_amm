@@ -10,6 +10,7 @@ import * as web3 from '@solana/web3.js'
 import * as beetSolana from '@metaplex-foundation/beet-solana'
 import { StableSwap, stableSwapBeet } from '../types/StableSwap'
 import { Fees, feesBeet } from '../types/Fees'
+import { TokenMode, tokenModeBeet } from '../types/TokenMode'
 
 /**
  * Arguments used to create {@link Pool}
@@ -25,6 +26,7 @@ export type PoolArgs = {
   lpToken: web3.PublicKey
   swap: StableSwap
   fees: Fees
+  tokenMode: TokenMode
 }
 
 export const poolDiscriminator = [241, 154, 109, 4, 17, 177, 109, 188]
@@ -44,7 +46,8 @@ export class Pool implements PoolArgs {
     readonly isFrozen: boolean,
     readonly lpToken: web3.PublicKey,
     readonly swap: StableSwap,
-    readonly fees: Fees
+    readonly fees: Fees,
+    readonly tokenMode: TokenMode
   ) {}
 
   /**
@@ -59,7 +62,8 @@ export class Pool implements PoolArgs {
       args.isFrozen,
       args.lpToken,
       args.swap,
-      args.fees
+      args.fees,
+      args.tokenMode
     )
   }
 
@@ -186,6 +190,7 @@ export class Pool implements PoolArgs {
       lpToken: this.lpToken.toBase58(),
       swap: this.swap,
       fees: this.fees,
+      tokenMode: 'TokenMode.' + TokenMode[this.tokenMode],
     }
   }
 }
@@ -210,6 +215,7 @@ export const poolBeet = new beet.FixableBeetStruct<
     ['lpToken', beetSolana.publicKey],
     ['swap', stableSwapBeet],
     ['fees', feesBeet],
+    ['tokenMode', tokenModeBeet],
   ],
   Pool.fromArgs,
   'Pool'

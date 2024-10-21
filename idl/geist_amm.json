@@ -1,23 +1,6 @@
 {
   "version": "0.1.0",
   "name": "geist_amm",
-  "constants": [
-    {
-      "name": "CORE_SEED",
-      "type": "string",
-      "value": "\"core\""
-    },
-    {
-      "name": "BINARY_POOL_SEED",
-      "type": "string",
-      "value": "\"binary_pool\""
-    },
-    {
-      "name": "VAULT_SEED",
-      "type": "string",
-      "value": "\"vault\""
-    }
-  ],
   "instructions": [
     {
       "name": "initializeCore",
@@ -123,6 +106,11 @@
           "isSigner": false
         },
         {
+          "name": "lightLpTokenPool",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
           "name": "lpTokenAdminAta",
           "isMut": true,
           "isSigner": false
@@ -139,6 +127,51 @@
         },
         {
           "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "merkleTree",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "noopProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lightSystemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "accountCompressionProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "compressedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lightCpiAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lightRegisteredProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "selfProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "accountCompressionAuthority",
           "isMut": false,
           "isSigner": false
         }
@@ -237,6 +270,35 @@
           }
         }
       ]
+    },
+    {
+      "name": "getVirtualPrice",
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "pool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lpToken",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": "GetVirtualPriceArgs"
+          }
+        }
+      ],
+      "returns": "u64"
     },
     {
       "name": "swap",
@@ -429,6 +491,12 @@
             "type": {
               "defined": "Fees"
             }
+          },
+          {
+            "name": "tokenMode",
+            "type": {
+              "defined": "TokenMode"
+            }
           }
         ]
       }
@@ -442,6 +510,18 @@
         "fields": [
           {
             "name": "platformFeeBps",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GetVirtualPriceArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "poolId",
             "type": "u64"
           }
         ]
@@ -470,6 +550,24 @@
             "name": "fees",
             "type": {
               "defined": "Fees"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "InitializeCompressedPoolArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "nTokens",
+            "type": "u64"
+          },
+          {
+            "name": "deposits",
+            "type": {
+              "vec": "u64"
             }
           }
         ]
@@ -633,6 +731,20 @@
                 "defined": "ExactOut"
               }
             ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "TokenMode",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "SPL"
+          },
+          {
+            "name": "COMPRESSED"
           }
         ]
       }
@@ -822,6 +934,16 @@
       "code": 6033,
       "name": "InsufficientBalanceForWithdrawal",
       "msg": "InsufficientBalanceForWithdrawal"
+    },
+    {
+      "code": 6034,
+      "name": "ZeroBalance",
+      "msg": "ZeroBalance"
+    },
+    {
+      "code": 6035,
+      "name": "ZeroInitialDeposit",
+      "msg": "ZeroInitialDeposit"
     }
   ],
   "metadata": {
