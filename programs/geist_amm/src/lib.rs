@@ -5,7 +5,6 @@ pub mod errors;
 pub mod math;
 
 use anchor_lang::prelude::*;
-use crate::errors::GeistError;
 use crate::instructions::*;
 use crate::states::*;
 
@@ -37,37 +36,13 @@ pub mod geist_amm {
         instructions::disable_stablecoin(ctx)
     }
 
-    /// Deprecated.
-    /// Use initialize_multi_pool with two assets instead.
-    pub fn initialize_binary_pool(
-        ctx: Context<InitializeBinaryPool>,
-        amp: u64,
-        initial_deposit_a: u64, 
-        initial_deposit_b: u64, 
-        fees: Fees
+    pub fn initialize_pool<'a>(
+        ctx: Context<'_, '_, '_, 'a, InitializePool<'a>>, 
+        args: InitializePoolArgs
     ) -> Result<()> {
-        instructions::initialize_binary_pool(
+        instructions::initialize_pool(
             ctx,
-            amp,
-            initial_deposit_a,
-            initial_deposit_b,
-            fees
-        )
-    }
-
-    pub fn initialize_multi_pool<'a>(
-        ctx: Context<'_, '_, '_, 'a, InitializeMultiPool<'a>>, 
-        amp: u64,
-        n_tokens: u64, 
-        initial_deposits: Vec<u64>,
-        fees: Fees
-    ) -> Result<()> {
-        instructions::initialize_multi_pool(
-            ctx,
-            amp,
-            n_tokens,
-            initial_deposits,
-            fees
+            args
         )
     }
 
@@ -86,6 +61,16 @@ pub mod geist_amm {
         args: WithdrawLiquidityArgs
     ) -> Result<()> {
         instructions::withdraw_liquidity(
+            ctx,
+            args
+        )
+    }
+
+    pub fn get_virtual_price(
+        ctx: Context<GetVirtualPrice>,
+        args: GetVirtualPriceArgs
+    ) -> Result<u64> {
+        instructions::get_virtual_price(
             ctx,
             args
         )

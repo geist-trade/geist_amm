@@ -10,76 +10,77 @@ import * as web3 from '@solana/web3.js'
 import * as beetSolana from '@metaplex-foundation/beet-solana'
 import { StableSwap, stableSwapBeet } from '../types/StableSwap'
 import { Fees, feesBeet } from '../types/Fees'
+import { TokenMode, tokenModeBeet } from '../types/TokenMode'
 
 /**
- * Arguments used to create {@link MultiPool}
+ * Arguments used to create {@link Pool}
  * @category Accounts
  * @category generated
  */
-export type MultiPoolArgs = {
+export type PoolArgs = {
   index: beet.bignum
   bump: number
   admin: web3.PublicKey
   stablecoins: web3.PublicKey[]
-  amp: beet.bignum
   isFrozen: boolean
   lpToken: web3.PublicKey
   swap: StableSwap
   fees: Fees
+  tokenMode: TokenMode
 }
 
-export const multiPoolDiscriminator = [244, 223, 68, 238, 85, 162, 221, 210]
+export const poolDiscriminator = [241, 154, 109, 4, 17, 177, 109, 188]
 /**
- * Holds the data for the {@link MultiPool} Account and provides de/serialization
+ * Holds the data for the {@link Pool} Account and provides de/serialization
  * functionality for that data
  *
  * @category Accounts
  * @category generated
  */
-export class MultiPool implements MultiPoolArgs {
+export class Pool implements PoolArgs {
   private constructor(
     readonly index: beet.bignum,
     readonly bump: number,
     readonly admin: web3.PublicKey,
     readonly stablecoins: web3.PublicKey[],
-    readonly amp: beet.bignum,
     readonly isFrozen: boolean,
     readonly lpToken: web3.PublicKey,
     readonly swap: StableSwap,
-    readonly fees: Fees
+    readonly fees: Fees,
+    readonly tokenMode: TokenMode
   ) {}
 
   /**
-   * Creates a {@link MultiPool} instance from the provided args.
+   * Creates a {@link Pool} instance from the provided args.
    */
-  static fromArgs(args: MultiPoolArgs) {
-    return new MultiPool(
+  static fromArgs(args: PoolArgs) {
+    return new Pool(
       args.index,
       args.bump,
       args.admin,
       args.stablecoins,
-      args.amp,
       args.isFrozen,
       args.lpToken,
       args.swap,
-      args.fees
+      args.fees,
+      args.tokenMode
     )
   }
 
   /**
-   * Deserializes the {@link MultiPool} from the data of the provided {@link web3.AccountInfo}.
+   * Deserializes the {@link Pool} from the data of the provided {@link web3.AccountInfo}.
    * @returns a tuple of the account data and the offset up to which the buffer was read to obtain it.
    */
   static fromAccountInfo(
     accountInfo: web3.AccountInfo<Buffer>,
     offset = 0
-  ): [MultiPool, number] {
-    return MultiPool.deserialize(accountInfo.data, offset)
+  ): [Pool, number] {
+    return Pool.deserialize(accountInfo.data, offset)
   }
 
   /**
    * Retrieves the account info from the provided address and deserializes
-   * the {@link MultiPool} from its data.
+   * the {@link Pool} from its data.
    *
    * @throws Error if no account info is found at the address or if deserialization fails
    */
@@ -87,15 +88,15 @@ export class MultiPool implements MultiPoolArgs {
     connection: web3.Connection,
     address: web3.PublicKey,
     commitmentOrConfig?: web3.Commitment | web3.GetAccountInfoConfig
-  ): Promise<MultiPool> {
+  ): Promise<Pool> {
     const accountInfo = await connection.getAccountInfo(
       address,
       commitmentOrConfig
     )
     if (accountInfo == null) {
-      throw new Error(`Unable to find MultiPool account at ${address}`)
+      throw new Error(`Unable to find Pool account at ${address}`)
     }
-    return MultiPool.fromAccountInfo(accountInfo, 0)[0]
+    return Pool.fromAccountInfo(accountInfo, 0)[0]
   }
 
   /**
@@ -109,64 +110,64 @@ export class MultiPool implements MultiPoolArgs {
       'AVzr6agjgPNhh4i4bTRLt9rLv48Nj4v5qKxMvgYty21n'
     )
   ) {
-    return beetSolana.GpaBuilder.fromStruct(programId, multiPoolBeet)
+    return beetSolana.GpaBuilder.fromStruct(programId, poolBeet)
   }
 
   /**
-   * Deserializes the {@link MultiPool} from the provided data Buffer.
+   * Deserializes the {@link Pool} from the provided data Buffer.
    * @returns a tuple of the account data and the offset up to which the buffer was read to obtain it.
    */
-  static deserialize(buf: Buffer, offset = 0): [MultiPool, number] {
-    return multiPoolBeet.deserialize(buf, offset)
+  static deserialize(buf: Buffer, offset = 0): [Pool, number] {
+    return poolBeet.deserialize(buf, offset)
   }
 
   /**
-   * Serializes the {@link MultiPool} into a Buffer.
+   * Serializes the {@link Pool} into a Buffer.
    * @returns a tuple of the created Buffer and the offset up to which the buffer was written to store it.
    */
   serialize(): [Buffer, number] {
-    return multiPoolBeet.serialize({
-      accountDiscriminator: multiPoolDiscriminator,
+    return poolBeet.serialize({
+      accountDiscriminator: poolDiscriminator,
       ...this,
     })
   }
 
   /**
    * Returns the byteSize of a {@link Buffer} holding the serialized data of
-   * {@link MultiPool} for the provided args.
+   * {@link Pool} for the provided args.
    *
    * @param args need to be provided since the byte size for this account
    * depends on them
    */
-  static byteSize(args: MultiPoolArgs) {
-    const instance = MultiPool.fromArgs(args)
-    return multiPoolBeet.toFixedFromValue({
-      accountDiscriminator: multiPoolDiscriminator,
+  static byteSize(args: PoolArgs) {
+    const instance = Pool.fromArgs(args)
+    return poolBeet.toFixedFromValue({
+      accountDiscriminator: poolDiscriminator,
       ...instance,
     }).byteSize
   }
 
   /**
    * Fetches the minimum balance needed to exempt an account holding
-   * {@link MultiPool} data from rent
+   * {@link Pool} data from rent
    *
    * @param args need to be provided since the byte size for this account
    * depends on them
    * @param connection used to retrieve the rent exemption information
    */
   static async getMinimumBalanceForRentExemption(
-    args: MultiPoolArgs,
+    args: PoolArgs,
     connection: web3.Connection,
     commitment?: web3.Commitment
   ): Promise<number> {
     return connection.getMinimumBalanceForRentExemption(
-      MultiPool.byteSize(args),
+      Pool.byteSize(args),
       commitment
     )
   }
 
   /**
-   * Returns a readable version of {@link MultiPool} properties
+   * Returns a readable version of {@link Pool} properties
    * and can be used to convert to JSON and/or logging
    */
   pretty() {
@@ -185,21 +186,11 @@ export class MultiPool implements MultiPoolArgs {
       bump: this.bump,
       admin: this.admin.toBase58(),
       stablecoins: this.stablecoins,
-      amp: (() => {
-        const x = <{ toNumber: () => number }>this.amp
-        if (typeof x.toNumber === 'function') {
-          try {
-            return x.toNumber()
-          } catch (_) {
-            return x
-          }
-        }
-        return x
-      })(),
       isFrozen: this.isFrozen,
       lpToken: this.lpToken.toBase58(),
       swap: this.swap,
       fees: this.fees,
+      tokenMode: 'TokenMode.' + TokenMode[this.tokenMode],
     }
   }
 }
@@ -208,9 +199,9 @@ export class MultiPool implements MultiPoolArgs {
  * @category Accounts
  * @category generated
  */
-export const multiPoolBeet = new beet.FixableBeetStruct<
-  MultiPool,
-  MultiPoolArgs & {
+export const poolBeet = new beet.FixableBeetStruct<
+  Pool,
+  PoolArgs & {
     accountDiscriminator: number[] /* size: 8 */
   }
 >(
@@ -220,12 +211,12 @@ export const multiPoolBeet = new beet.FixableBeetStruct<
     ['bump', beet.u8],
     ['admin', beetSolana.publicKey],
     ['stablecoins', beet.array(beetSolana.publicKey)],
-    ['amp', beet.u64],
     ['isFrozen', beet.bool],
     ['lpToken', beetSolana.publicKey],
     ['swap', stableSwapBeet],
     ['fees', feesBeet],
+    ['tokenMode', tokenModeBeet],
   ],
-  MultiPool.fromArgs,
-  'MultiPool'
+  Pool.fromArgs,
+  'Pool'
 )

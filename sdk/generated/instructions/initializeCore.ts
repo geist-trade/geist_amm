@@ -7,6 +7,10 @@
 
 import * as beet from '@metaplex-foundation/beet'
 import * as web3 from '@solana/web3.js'
+import {
+  InitializeCoreArgs,
+  initializeCoreArgsBeet,
+} from '../types/InitializeCoreArgs'
 
 /**
  * @category Instructions
@@ -14,8 +18,7 @@ import * as web3 from '@solana/web3.js'
  * @category generated
  */
 export type InitializeCoreInstructionArgs = {
-  swapFeeBps: beet.bignum
-  withdrawFeeBps: beet.bignum
+  args: InitializeCoreArgs
 }
 /**
  * @category Instructions
@@ -29,8 +32,7 @@ export const initializeCoreStruct = new beet.BeetArgsStruct<
 >(
   [
     ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
-    ['swapFeeBps', beet.u64],
-    ['withdrawFeeBps', beet.u64],
+    ['args', initializeCoreArgsBeet],
   ],
   'InitializeCoreInstructionArgs'
 )

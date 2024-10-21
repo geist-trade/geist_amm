@@ -16,25 +16,57 @@ use anchor_lang::system_program::{
     create_account,
     CreateAccount
 };
-use crate::constants::*;
+use light_sdk::{
+    CPI_AUTHORITY_PDA_SEED, PROGRAM_ID_ACCOUNT_COMPRESSION, PROGRAM_ID_LIGHT_SYSTEM, PROGRAM_ID_LIGHT_TOKEN
+};
+use crate::{constants::*, geist_amm};
 use crate::program;
 use crate::states::*;
 use crate::errors::GeistError;
 
-pub fn initialize_multi_pool<'a>(
-    ctx: Context<'_, '_, '_, 'a, InitializeMultiPool<'a>>,
-    amp: u64,
-    n_tokens: u64,
-    deposits: Vec<u64>,
-    fees: Fees
+#[derive(AnchorDeserialize, AnchorSerialize)]
+pub struct InitializePoolArgs {
+    pub amp: u64,
+    pub n_tokens: u64,
+    pub deposits: Vec<u64>,
+    pub fees: Fees
+}
+
+pub fn initialize_pool<'a>(
+    ctx: Context<'_, '_, '_, 'a, InitializePool<'a>>,
+    args: InitializePoolArgs
 ) -> Result<()> {
+    let InitializePoolArgs {
+        amp,
+        deposits,
+        fees,
+        n_tokens
+    } = args;
+
     let admin = &ctx.accounts.admin;
     let lp_token = &ctx.accounts.lp_token;
     let core = &ctx.accounts.core;
     let token_program = &ctx.accounts.token_program;
     let system_program = &ctx.accounts.system_program;
     let lp_token_admin_ata = &ctx.accounts.lp_token_admin_ata;
-    let multi_pool = &ctx.accounts.multi_pool;
+    let pool = &ctx.accounts.pool;
+    // let light_lp_token_pool = &ctx.accounts.light_lp_token_pool;
+    // let light_cpi_authority = &ctx.accounts.light_cpi_authority;
+    // let merkle_tree = &ctx.accounts.merkle_tree;
+    // let light_system_program = &ctx.accounts.light_system_program;
+    // let light_registered_program = &ctx.accounts.light_registered_program;
+    // let noop_program = &ctx.accounts.noop_program;
+    // let self_program = &ctx.accounts.self_program;
+    // let account_compression_program = &ctx.accounts.account_compression_program;
+    // let account_compression_authority = &ctx.accounts.account_compression_authority;
+    // let compressed_token_program = &ctx.accounts.compressed_token_program;
+
+    for deposit in &deposits {
+        require!(
+            *deposit > 0,
+            GeistError::ZeroInitialDeposit
+        );
+    }
 
     // Remaining accounts have to be provided in the following schema:
     // (stablecoin, stablecoin_vault, stablecoin_admin_ata)
@@ -68,8 +100,11 @@ pub fn initialize_multi_pool<'a>(
     let signer_seeds = &[
         BINARY_POOL_SEED.as_bytes(),
         &core.next_pool_id.to_le_bytes(),
-        &[ctx.bumps.multi_pool]
+        &[ctx.bumps.pool]
     ];
+
+
+    // TODO: Make this deserialization + validation process more generalised.
 
     let mut stablecoins: Vec<Pubkey> = Vec::new();
     let mut balances: Vec<u64> = Vec::new();
@@ -100,7 +135,7 @@ pub fn initialize_multi_pool<'a>(
 
         let signer_seeds = &[
             VAULT_SEED.as_bytes(),
-            &multi_pool.key().to_bytes(),
+            &pool.key().to_bytes(),
             &stablecoin_mint_account_info.key.to_bytes(),
             &[vault_bump]
         ];
@@ -127,7 +162,7 @@ pub fn initialize_multi_pool<'a>(
                 InitializeAccount3 {
                     account: stablecoin_vault_account_info.clone(),
                     mint: stablecoin_mint_account_info.clone(),
-                    authority: multi_pool.to_account_info()
+                    authority: pool.to_account_info()
                 },
                 &[signer_seeds]
             )
@@ -141,8 +176,6 @@ pub fn initialize_multi_pool<'a>(
             )?;
             balances.push(stablecoin_vault.amount);
         }
-
-        msg!("Validated & pushed vault balance.");
 
         // Stablecoin admin ata
         let stablecoin_admin_ata_account_info = &groups[n * 3 + 2];
@@ -159,8 +192,6 @@ pub fn initialize_multi_pool<'a>(
                 deposits[n]
             )?;
         }
-
-        msg!("Validated admin's stablecoin ATA.");
 
         // If user deposits this token, transfer to LP.
         let deposit = deposits[n];
@@ -182,19 +213,19 @@ pub fn initialize_multi_pool<'a>(
     }
 
     let stable_swap = StableSwap::new(amp, n_tokens)?;
-    let multi_pool = &mut ctx.accounts.multi_pool;
+    let pool = &mut ctx.accounts.pool;
 
-    multi_pool.admin = admin.key();
-    multi_pool.amp = amp;
-    multi_pool.swap = stable_swap;
-    multi_pool.fees = fees;
-    multi_pool.is_frozen = false;
-    multi_pool.lp_token = lp_token.key();
-    multi_pool.stablecoins = stablecoins;
-    multi_pool.index = core.next_pool_id;
-    multi_pool.bump = ctx.bumps.multi_pool;
+    pool.admin = admin.key();
+    pool.swap = stable_swap;
+    pool.fees = fees;
+    pool.is_frozen = false;
+    pool.lp_token = lp_token.key();
+    pool.stablecoins = stablecoins;
+    pool.index = core.next_pool_id;
+    pool.bump = ctx.bumps.pool;
+    pool.token_mode = TokenMode::SPL;
 
-    let lp_tokens = multi_pool
+    let lp_tokens = pool
         .swap
         .compute_lp_tokens_on_deposit_multi(
             &deposits, 
@@ -202,11 +233,41 @@ pub fn initialize_multi_pool<'a>(
             lp_token.supply
         )?;
 
+    // pool.initialize_compressed_lp_token_pool(
+    //     admin, 
+    //     &lp_token.to_account_info(), 
+    //     &light_lp_token_pool.to_account_info(), 
+    //     system_program, 
+    //     token_program, 
+    //     light_cpi_authority,
+    //     compressed_token_program
+    // )?;
+
+    // pool.mint_compressed_lp_tokens(
+    //     admin, 
+    //     &pool.to_account_info(), 
+    //     &lp_token.to_account_info(), 
+    //     merkle_tree, 
+    //     &lp_token_admin_ata.to_account_info(), 
+    //     light_cpi_authority,
+    //     token_program,
+    //     compressed_token_program,
+    //     light_system_program,
+    //     light_registered_program,
+    //     noop_program,
+    //     account_compression_authority,
+    //     account_compression_program,
+    //     self_program,
+    //     system_program,
+    //     &light_lp_token_pool.to_account_info(),
+    //     lp_tokens
+    // )?;
+
     mint_to(
         CpiContext::new_with_signer(
             token_program.to_account_info(), 
             MintTo {
-                authority: multi_pool.to_account_info(),
+                authority: pool.to_account_info(),
                 mint: lp_token.to_account_info(),
                 to: lp_token_admin_ata.to_account_info()
             }, 
@@ -228,7 +289,7 @@ pub fn initialize_multi_pool<'a>(
     deposits: Vec<u64>,
     fees: Fees
 )]
-pub struct InitializeMultiPool<'info> {
+pub struct InitializePool<'info> {
     #[account(
         mut
     )]
@@ -251,19 +312,24 @@ pub struct InitializeMultiPool<'info> {
             BINARY_POOL_SEED.as_bytes(),
             &core.next_pool_id.to_le_bytes()
         ],
-        space = MultiPool::INITIAL_SIZE as usize + ((n_tokens * 32) as usize),
+        space = Pool::INITIAL_SIZE as usize + ((n_tokens * 32) as usize),
         bump,
     )]
-    pub multi_pool: Account<'info, MultiPool>,
+    pub pool: Account<'info, Pool>,
 
     #[account(
         mut,
         constraint = lp_token.supply == 0 @ GeistError::LpTokenPreMinted,
-        constraint = lp_token.mint_authority == Some(multi_pool.key()).into() @ GeistError::InvalidMintAuthority,
+        constraint = lp_token.mint_authority == Some(pool.key()).into() @ GeistError::InvalidMintAuthority,
         constraint = lp_token.freeze_authority.is_none() @ GeistError::InvalidFreezeAuthority,
         constraint = lp_token.is_initialized @ GeistError::LpTokenNotInitialized
     )]
     pub lp_token: Account<'info, Mint>,
+
+    // #[account(
+    //     constraint = light_lp_token_pool.key() == light_compressed_token::get_token_pool_pda(&lp_token.key())
+    // )]
+    // pub light_lp_token_pool: Account<'info, TokenAccount>,
 
     #[account(
         mut,
@@ -280,9 +346,66 @@ pub struct InitializeMultiPool<'info> {
 
     #[account()]
     pub system_program: Program<'info, System>,
+
+    // /// CHECK: Not reading or writing to this account, fallback to Light Protocol security
+    // #[account()]
+    // pub merkle_tree: AccountInfo<'info>,
+
+    // /// CHECK: not writing, nor reading from this account
+    // #[account()]
+    // pub noop_program: AccountInfo<'info>,
+
+    // /// CHECK: directly checking program id
+    // #[account(
+    //     address = light_sdk::PROGRAM_ID_LIGHT_SYSTEM
+    // )]
+    // pub light_system_program: AccountInfo<'info>,
+
+    // /// CHECK: directly checking program id
+    // #[account(
+    //     address = PROGRAM_ID_ACCOUNT_COMPRESSION
+    // )]
+    // pub account_compression_program: AccountInfo<'info>,
+
+    // /// CHECK: directly checking program id
+    // #[account(
+    //     address = PROGRAM_ID_LIGHT_TOKEN
+    // )]
+    // pub compressed_token_program: AccountInfo<'info>,
+
+    // /// CHECK: directly checking seeds
+    // #[account(
+    //     seeds = [
+    //         CPI_AUTHORITY_PDA_SEED
+    //     ],
+    //     bump
+    // )]
+    // pub light_cpi_authority: AccountInfo<'info>,
+
+    // /// CHECK: directly checking seeds
+    // #[account(
+    //     address = light_sdk::utils::get_registered_program_pda(
+    //         &light_sdk::PROGRAM_ID_LIGHT_SYSTEM
+    //     )
+    // )]
+    // pub light_registered_program: AccountInfo<'info>,
+
+    // /// CHECK: directly checking program id
+    // #[account(
+    //     address = crate::ID
+    // )]
+    // pub self_program: AccountInfo<'info>,
+
+    // /// CHECK: directly checking address
+    // #[account(
+    //     address = light_sdk::utils::get_cpi_authority_pda(
+    //         &PROGRAM_ID_LIGHT_SYSTEM,
+    //     ),
+    // )]
+    // pub account_compression_authority: AccountInfo<'info>,
 }
 
-impl InitializeMultiPool<'_> {
+impl<'info> InitializePool<'info> {
     pub fn validate_stablecoin_mint(
         &self,
         mint: &Pubkey
@@ -306,7 +429,7 @@ impl InitializeMultiPool<'_> {
         let (rederived_vault, bump) = Pubkey::find_program_address(
             &[
                 VAULT_SEED.as_bytes(),
-                self.multi_pool.key().as_ref(),
+                self.pool.key().as_ref(),
                 stablecoin_mint.key().as_ref()
             ], 
             &program::GeistAmm::id()

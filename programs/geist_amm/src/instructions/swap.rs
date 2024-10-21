@@ -10,16 +10,33 @@ use crate::constants::*;
 use crate::states::*;
 use crate::errors::GeistError;
 use anchor_spl::token::spl_token::state::AccountState;
-use crate::MultiPool;
+use crate::Pool;
 use crate::program;
+use crate::borsh;
+
+#[derive(AnchorDeserialize, AnchorSerialize)]
+pub struct ExactIn {
+    pub minimum_received: u64,
+}
+
+#[derive(AnchorDeserialize, AnchorSerialize)]
+pub struct ExactOut {
+    pub maximum_taken: u64,
+}
+
+#[derive(AnchorDeserialize, AnchorSerialize)]
+pub enum SwapMode {
+    ExactIn(ExactIn),
+    ExactOut(ExactOut)
+}
 
 #[derive(AnchorDeserialize, AnchorSerialize)]
 pub struct SwapArgs {
     pub pool_id: u64,
-    amount: u64,
-    minimum_received: u64,
-    from_id: usize,
-    to_id: usize
+    pub from_id: u8,
+    pub to_id: u8,
+    pub amount: u64,
+    pub mode: SwapMode
 }
 
 pub fn swap(
@@ -29,10 +46,10 @@ pub fn swap(
 
     let SwapArgs {
         amount,
+        mode,
         from_id,
         to_id,
-        minimum_received,
-        pool_id
+        pool_id,
     } = args;
 
     let pool = &ctx.accounts.pool;
@@ -69,22 +86,71 @@ pub fn swap(
         balances.push(lp.amount);
     }
 
-    let fee = pool.fees.swap_fee_bps * amount / 10_000;
-    let input_amount = amount - fee;
+    let fee: u64;
+    let in_amount: u64;
+    let out_amount: u64;
+    
+    match mode {
+        SwapMode::ExactIn(ExactIn { minimum_received }) => {
+            fee = pool.fees.swap_fee_bps * amount / 10_000;
+            in_amount = amount - fee;
 
-    let SwapOut {
-        out_amount,
-        fee: _
-    } = pool.swap.swap_exact_in(
-        &balances, 
-        from_id, 
-        to_id, 
-        input_amount
-    )?;
+            let SwapOut {
+                out_amount: out
+            } = pool.swap.swap_exact_in(
+                &balances, 
+                from_id.into(), 
+                to_id.into(), 
+                in_amount
+            )?;
+
+            out_amount = out;
+
+            require!(
+                out_amount >= minimum_received,
+                GeistError::SlippageExceeded
+            );
+        }
+
+        SwapMode::ExactOut(ExactOut { maximum_taken }) => {
+            out_amount = amount;
+
+            let SwapIn {
+                in_amount: in_am
+            } = pool.swap.swap_exact_out(
+                &balances, 
+                from_id.into(), 
+                to_id.into(), 
+                out_amount, 
+            )?;
+
+            msg!("in_am: {}", in_am);
+
+            in_amount = in_am;
+            fee = pool.fees.swap_fee_bps * in_am / 10_000;
+
+            let total_taken = in_amount + fee;
+            msg!("total taken: {}", total_taken);
+
+            require!(
+                total_taken <= maximum_taken,
+                GeistError::SlippageExceeded
+            );
+        }
+    }
+
+    msg!("out amount: {}", out_amount);
+    msg!("vault: {}", stablecoin_output_vault.amount);
+    msg!("users ata: {}", stablecoin_output_user_ata.amount);
 
     require!(
-        out_amount >= minimum_received,
-        GeistError::SlippageExceeded
+        out_amount < stablecoin_output_vault.amount,
+        GeistError::NotEnoughLiquidity
+    );
+
+    require!(
+        in_amount <= stablecoin_output_user_ata.amount,
+        GeistError::NotEnoughFunds
     );
 
     let signer_seeds = &[
@@ -92,6 +158,9 @@ pub fn swap(
         &pool.index.to_le_bytes(),
         &[ctx.bumps.pool]
     ];
+
+    msg!("user input balance: {}", stablecoin_input_user_ata.amount);
+    msg!("transaction input: {}", in_amount + fee);
 
     // Transfer input to LP.
     transfer(
@@ -103,7 +172,7 @@ pub fn swap(
                 to: stablecoin_input_vault.to_account_info()
             }
         ), 
-        amount
+        in_amount + fee
     )?;
 
     // Transfer output to user.
@@ -153,18 +222,18 @@ pub struct Swap<'info> {
         constraint = pool.index == args.pool_id @ GeistError::PoolIdMismatch,
         constraint = !pool.is_frozen @ GeistError::PoolFrozen
     )]
-    pub pool: Account<'info, MultiPool>,
+    pub pool: Account<'info, Pool>,
 
     #[account(
         mut,
-        address = pool.stablecoins[args.from_id],
+        address = pool.stablecoins[args.from_id as usize],
         constraint = core.supported_stablecoins.contains(&stablecoin_input.key()) @ GeistError::StablecoinNotSupported,
     )]
     pub stablecoin_input: Account<'info, Mint>,
 
     #[account(
         mut,
-        address = pool.stablecoins[args.to_id]
+        address = pool.stablecoins[args.to_id as usize]
     )]
     pub stablecoin_output: Account<'info, Mint>,
 
@@ -186,16 +255,14 @@ pub struct Swap<'info> {
             pool.key().as_ref(),
             stablecoin_output.key().as_ref()
         ],
-        bump,
-        constraint = stablecoin_output_vault.amount > args.minimum_received @ GeistError::NotEnoughLiquidity
+        bump
     )]
     pub stablecoin_output_vault: Account<'info, TokenAccount>,
 
     #[account(
         mut,
         associated_token::mint = stablecoin_input,
-        associated_token::authority = user,
-        constraint = stablecoin_input_user_ata.amount > args.amount @ GeistError::NotEnoughFunds,
+        associated_token::authority = user
     )]
     pub stablecoin_input_user_ata: Account<'info, TokenAccount>,
 

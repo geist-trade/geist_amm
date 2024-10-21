@@ -152,9 +152,10 @@ pub fn add_liquidity<'a>(
                 deposit
             )?;
 
-            msg!("Added {} of {} to LP.", deposit, stablecoin_mint_account_info.key());
         }
     }
+
+    msg!("Tokens transferred. Calculating LP tokens");
 
     let lp_tokens = pool
         .swap
@@ -163,6 +164,8 @@ pub fn add_liquidity<'a>(
             &balances, 
             lp_token.supply
         )?;
+
+    msg!("Minting LP tokens: {}", lp_tokens);
 
     pool.mint_lp_tokens(
         lp_tokens, 

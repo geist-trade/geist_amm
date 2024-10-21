@@ -8,87 +8,83 @@
 import * as splToken from '@solana/spl-token'
 import * as beet from '@metaplex-foundation/beet'
 import * as web3 from '@solana/web3.js'
-import { Fees, feesBeet } from '../types/Fees'
+import {
+  WithdrawLiquidityArgs,
+  withdrawLiquidityArgsBeet,
+} from '../types/WithdrawLiquidityArgs'
 
 /**
  * @category Instructions
- * @category InitializeMultiPool
+ * @category WithdrawLiquidity
  * @category generated
  */
-export type InitializeMultiPoolInstructionArgs = {
-  amp: beet.bignum
-  nTokens: beet.bignum
-  initialDeposits: beet.bignum[]
-  fees: Fees
+export type WithdrawLiquidityInstructionArgs = {
+  args: WithdrawLiquidityArgs
 }
 /**
  * @category Instructions
- * @category InitializeMultiPool
+ * @category WithdrawLiquidity
  * @category generated
  */
-export const initializeMultiPoolStruct = new beet.FixableBeetArgsStruct<
-  InitializeMultiPoolInstructionArgs & {
+export const withdrawLiquidityStruct = new beet.BeetArgsStruct<
+  WithdrawLiquidityInstructionArgs & {
     instructionDiscriminator: number[] /* size: 8 */
   }
 >(
   [
     ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
-    ['amp', beet.u64],
-    ['nTokens', beet.u64],
-    ['initialDeposits', beet.array(beet.u64)],
-    ['fees', feesBeet],
+    ['args', withdrawLiquidityArgsBeet],
   ],
-  'InitializeMultiPoolInstructionArgs'
+  'WithdrawLiquidityInstructionArgs'
 )
 /**
- * Accounts required by the _initializeMultiPool_ instruction
+ * Accounts required by the _withdrawLiquidity_ instruction
  *
- * @property [_writable_, **signer**] admin
+ * @property [_writable_, **signer**] user
  * @property [_writable_] core
- * @property [_writable_] multiPool
+ * @property [_writable_] pool
  * @property [_writable_] lpToken
- * @property [_writable_] lpTokenAdminAta
+ * @property [_writable_] lpTokenUserAta
  * @category Instructions
- * @category InitializeMultiPool
+ * @category WithdrawLiquidity
  * @category generated
  */
-export type InitializeMultiPoolInstructionAccounts = {
-  admin: web3.PublicKey
+export type WithdrawLiquidityInstructionAccounts = {
+  user: web3.PublicKey
   core: web3.PublicKey
-  multiPool: web3.PublicKey
+  pool: web3.PublicKey
   lpToken: web3.PublicKey
-  lpTokenAdminAta: web3.PublicKey
+  lpTokenUserAta: web3.PublicKey
   tokenProgram?: web3.PublicKey
-  systemProgram?: web3.PublicKey
   anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
-export const initializeMultiPoolInstructionDiscriminator = [
-  78, 78, 68, 56, 116, 213, 188, 215,
+export const withdrawLiquidityInstructionDiscriminator = [
+  149, 158, 33, 185, 47, 243, 253, 31,
 ]
 
 /**
- * Creates a _InitializeMultiPool_ instruction.
+ * Creates a _WithdrawLiquidity_ instruction.
  *
  * @param accounts that will be accessed while the instruction is processed
  * @param args to provide as instruction data to the program
  *
  * @category Instructions
- * @category InitializeMultiPool
+ * @category WithdrawLiquidity
  * @category generated
  */
-export function createInitializeMultiPoolInstruction(
-  accounts: InitializeMultiPoolInstructionAccounts,
-  args: InitializeMultiPoolInstructionArgs,
+export function createWithdrawLiquidityInstruction(
+  accounts: WithdrawLiquidityInstructionAccounts,
+  args: WithdrawLiquidityInstructionArgs,
   programId = new web3.PublicKey('AVzr6agjgPNhh4i4bTRLt9rLv48Nj4v5qKxMvgYty21n')
 ) {
-  const [data] = initializeMultiPoolStruct.serialize({
-    instructionDiscriminator: initializeMultiPoolInstructionDiscriminator,
+  const [data] = withdrawLiquidityStruct.serialize({
+    instructionDiscriminator: withdrawLiquidityInstructionDiscriminator,
     ...args,
   })
   const keys: web3.AccountMeta[] = [
     {
-      pubkey: accounts.admin,
+      pubkey: accounts.user,
       isWritable: true,
       isSigner: true,
     },
@@ -98,7 +94,7 @@ export function createInitializeMultiPoolInstruction(
       isSigner: false,
     },
     {
-      pubkey: accounts.multiPool,
+      pubkey: accounts.pool,
       isWritable: true,
       isSigner: false,
     },
@@ -108,17 +104,12 @@ export function createInitializeMultiPoolInstruction(
       isSigner: false,
     },
     {
-      pubkey: accounts.lpTokenAdminAta,
+      pubkey: accounts.lpTokenUserAta,
       isWritable: true,
       isSigner: false,
     },
     {
       pubkey: accounts.tokenProgram ?? splToken.TOKEN_PROGRAM_ID,
-      isWritable: false,
-      isSigner: false,
-    },
-    {
-      pubkey: accounts.systemProgram ?? web3.SystemProgram.programId,
       isWritable: false,
       isSigner: false,
     },

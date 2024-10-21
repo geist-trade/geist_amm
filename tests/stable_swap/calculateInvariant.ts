@@ -3,27 +3,29 @@ import BN from "bn.js";
 function computeDNext(
     dPrev: BN,
     n: number,
-    nn: number,
+    nn: BN,
     balances: BN[],
     annSum: BN,
     annMinusOne: BN,
-    nPlusOne: number
+    nPlusOne: BN
 ): BN {
-    let dProd = dPrev;
+    let dProd = new BN(1);
+    let nActual = n;
 
     for (const balance of balances) {
-        dProd = dProd.mul(dPrev).div(balance);
+        if (balance.isZero()) {
+            nActual--;
+            continue;
+        }
+        dProd = dProd.mul(dPrev).div(balance.mul(new BN(n)));
     }
 
-    dProd = dProd.div(new BN(nn));
+    if (nActual === 0) {
+        return new BN(0);
+    }
 
-    const numerator = dPrev.mul(
-        dProd.mul(new BN(n)).add(annSum)
-    );
-
-    const denominator = dPrev.mul(annMinusOne).add(
-        dProd.mul(new BN(nPlusOne))
-    );
+    const numerator = annSum.mul(dPrev).add(dProd.mul(nn).mul(new BN(nActual)));
+    const denominator = annMinusOne.mul(dPrev).add(dProd.mul(nPlusOne).mul(new BN(nActual)));
 
     return numerator.div(denominator);
 }
@@ -49,14 +51,14 @@ export default function calculateInvariant(balances: BN[], amp: BN): BN {
         const dNext = computeDNext(
             D,
             n,
-            nn,
+            new BN(nn),
             balances,
             annSum,
             annMinusOne,
-            nPlusOne
+            new BN(nPlusOne)
         );
 
-        if (D.sub(dNext).abs().lte(new BN(1))) {
+        if (dNext.isZero() || D.sub(dNext).abs().lte(new BN(1))) {
             return D;
         }
 

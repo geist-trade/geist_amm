@@ -5,79 +5,75 @@
  * See: https://github.com/metaplex-foundation/solita
  */
 
-import * as splToken from '@solana/spl-token'
 import * as beet from '@metaplex-foundation/beet'
 import * as web3 from '@solana/web3.js'
+import {
+  GetVirtualPriceArgs,
+  getVirtualPriceArgsBeet,
+} from '../types/GetVirtualPriceArgs'
 
 /**
  * @category Instructions
- * @category AddLiquidity
+ * @category GetVirtualPrice
  * @category generated
  */
-export type AddLiquidityInstructionArgs = {
-  poolId: beet.bignum
-  deposits: beet.bignum[]
+export type GetVirtualPriceInstructionArgs = {
+  args: GetVirtualPriceArgs
 }
 /**
  * @category Instructions
- * @category AddLiquidity
+ * @category GetVirtualPrice
  * @category generated
  */
-export const addLiquidityStruct = new beet.FixableBeetArgsStruct<
-  AddLiquidityInstructionArgs & {
+export const getVirtualPriceStruct = new beet.BeetArgsStruct<
+  GetVirtualPriceInstructionArgs & {
     instructionDiscriminator: number[] /* size: 8 */
   }
 >(
   [
     ['instructionDiscriminator', beet.uniformFixedSizeArray(beet.u8, 8)],
-    ['poolId', beet.u64],
-    ['deposits', beet.array(beet.u64)],
+    ['args', getVirtualPriceArgsBeet],
   ],
-  'AddLiquidityInstructionArgs'
+  'GetVirtualPriceInstructionArgs'
 )
 /**
- * Accounts required by the _addLiquidity_ instruction
+ * Accounts required by the _getVirtualPrice_ instruction
  *
  * @property [_writable_, **signer**] user
- * @property [_writable_] core
- * @property [_writable_] multiPool
+ * @property [_writable_] pool
  * @property [_writable_] lpToken
- * @property [_writable_] lpTokenUserAta
  * @category Instructions
- * @category AddLiquidity
+ * @category GetVirtualPrice
  * @category generated
  */
-export type AddLiquidityInstructionAccounts = {
+export type GetVirtualPriceInstructionAccounts = {
   user: web3.PublicKey
-  core: web3.PublicKey
-  multiPool: web3.PublicKey
+  pool: web3.PublicKey
   lpToken: web3.PublicKey
-  lpTokenUserAta: web3.PublicKey
-  tokenProgram?: web3.PublicKey
   anchorRemainingAccounts?: web3.AccountMeta[]
 }
 
-export const addLiquidityInstructionDiscriminator = [
-  181, 157, 89, 67, 143, 182, 52, 72,
+export const getVirtualPriceInstructionDiscriminator = [
+  41, 165, 98, 171, 1, 184, 61, 157,
 ]
 
 /**
- * Creates a _AddLiquidity_ instruction.
+ * Creates a _GetVirtualPrice_ instruction.
  *
  * @param accounts that will be accessed while the instruction is processed
  * @param args to provide as instruction data to the program
  *
  * @category Instructions
- * @category AddLiquidity
+ * @category GetVirtualPrice
  * @category generated
  */
-export function createAddLiquidityInstruction(
-  accounts: AddLiquidityInstructionAccounts,
-  args: AddLiquidityInstructionArgs,
+export function createGetVirtualPriceInstruction(
+  accounts: GetVirtualPriceInstructionAccounts,
+  args: GetVirtualPriceInstructionArgs,
   programId = new web3.PublicKey('AVzr6agjgPNhh4i4bTRLt9rLv48Nj4v5qKxMvgYty21n')
 ) {
-  const [data] = addLiquidityStruct.serialize({
-    instructionDiscriminator: addLiquidityInstructionDiscriminator,
+  const [data] = getVirtualPriceStruct.serialize({
+    instructionDiscriminator: getVirtualPriceInstructionDiscriminator,
     ...args,
   })
   const keys: web3.AccountMeta[] = [
@@ -87,28 +83,13 @@ export function createAddLiquidityInstruction(
       isSigner: true,
     },
     {
-      pubkey: accounts.core,
-      isWritable: true,
-      isSigner: false,
-    },
-    {
-      pubkey: accounts.multiPool,
+      pubkey: accounts.pool,
       isWritable: true,
       isSigner: false,
     },
     {
       pubkey: accounts.lpToken,
       isWritable: true,
-      isSigner: false,
-    },
-    {
-      pubkey: accounts.lpTokenUserAta,
-      isWritable: true,
-      isSigner: false,
-    },
-    {
-      pubkey: accounts.tokenProgram ?? splToken.TOKEN_PROGRAM_ID,
-      isWritable: false,
       isSigner: false,
     },
   ]
