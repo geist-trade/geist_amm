@@ -351,4 +351,18 @@ export default class Geist {
 
         return vault;
     }
+
+    async getAllPoolsWithLpBalances() {
+        const pools = await this.getAllPools();
+
+        return await Promise.all(pools.map(async (pool) => {
+            const { publicKey, account: { stablecoins } } = pool;
+
+            const lpBalances = await this.getLpBalances(publicKey, stablecoins);
+            return {
+                ...pool,
+                lpBalances
+            };
+        }));
+    }
 }

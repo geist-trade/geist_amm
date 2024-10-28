@@ -86,4 +86,45 @@ export default class Geist {
         pool: PublicKey;
         stablecoin: PublicKey;
     }): PublicKey;
+    getAllPoolsWithLpBalances(): Promise<{
+        lpBalances: {
+            stablecoin: PublicKey;
+            balance: BN;
+        }[];
+        publicKey: PublicKey;
+        account: {
+            index: BN;
+            bump: number;
+            admin: PublicKey;
+            stablecoins: PublicKey[];
+            isFrozen: boolean;
+            lpToken: PublicKey;
+            swap: {
+                amp: BN;
+                nTokens: BN;
+                mode: ({
+                    multi?: never;
+                } & {
+                    binary: Record<string, never>;
+                }) | ({
+                    binary?: never;
+                } & {
+                    multi: Record<string, never>;
+                });
+            };
+            fees: {
+                swapFeeBps: BN;
+                liquidityRemovalFeeBps: BN;
+            };
+            tokenMode: ({
+                compressed?: never;
+            } & {
+                spl: Record<string, never>;
+            }) | ({
+                spl?: never;
+            } & {
+                compressed: Record<string, never>;
+            });
+        };
+    }[]>;
 }

@@ -1,3 +1,4 @@
 import Geist from "./Geist";
 import GeistAdmin from "./GeistAdmin";
-export { Geist, GeistAdmin };
+import SimulatedPool from "./SimulatedPool";
+export { Geist, GeistAdmin, SimulatedPool, };

@@ -246,5 +246,15 @@ class Geist {
         ], generated_1.PROGRAM_ID);
         return vault;
     }
+    getAllPoolsWithLpBalances() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const pools = yield this.getAllPools();
+            return yield Promise.all(pools.map((pool) => __awaiter(this, void 0, void 0, function* () {
+                const { publicKey, account: { stablecoins } } = pool;
+                const lpBalances = yield this.getLpBalances(publicKey, stablecoins);
+                return Object.assign(Object.assign({}, pool), { lpBalances });
+            })));
+        });
+    }
 }
 exports.default = Geist;
