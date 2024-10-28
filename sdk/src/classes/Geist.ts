@@ -22,7 +22,7 @@ import {GeistAmm} from "../idl/geist_amm";
 import GeistIdl from "../idl/geist_amm.json";
 import {BalanceChange} from "../types";
 import {
-    createInitializeMintInstruction,
+    createInitializeMintInstruction, getAccount,
     getAssociatedTokenAddressSync,
     MINT_SIZE,
     TOKEN_PROGRAM_ID
@@ -321,5 +321,34 @@ export default class Geist {
             .all();
 
         return pools;
+    }
+
+    async getLpBalances(pool: PublicKey, stablecoins: PublicKey[]) {
+        return Promise.all(stablecoins.map(async ( stablecoin ) => {
+            const vault = this.deriveVault({ pool, stablecoin });
+            // This should never fail since this account will be only
+            // fetched after pool exists + will never be closed.
+            const {
+                amount
+            } = await getAccount(this.connection, vault);
+
+            return {
+                stablecoin,
+                balance: new BN(amount.toString())
+            };
+        }));
+    }
+
+    deriveVault({ pool, stablecoin } : { pool: PublicKey, stablecoin: PublicKey }) {
+        const [vault] = PublicKey.findProgramAddressSync(
+            [
+                Buffer.from("vault"),
+                pool.toBuffer(),
+                stablecoin.toBuffer()
+            ],
+            PROGRAM_ID
+        );
+
+        return vault;
     }
 }

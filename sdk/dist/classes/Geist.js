@@ -224,5 +224,27 @@ class Geist {
             return pools;
         });
     }
+    getLpBalances(pool, stablecoins) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return Promise.all(stablecoins.map((stablecoin) => __awaiter(this, void 0, void 0, function* () {
+                const vault = this.deriveVault({ pool, stablecoin });
+                // This should never fail since this account will be only
+                // fetched after pool exists + will never be closed.
+                const { amount } = yield (0, spl_token_1.getAccount)(this.connection, vault);
+                return {
+                    stablecoin,
+                    balance: new bn_js_1.default(amount.toString())
+                };
+            })));
+        });
+    }
+    deriveVault({ pool, stablecoin }) {
+        const [vault] = web3_js_1.PublicKey.findProgramAddressSync([
+            Buffer.from("vault"),
+            pool.toBuffer(),
+            stablecoin.toBuffer()
+        ], generated_1.PROGRAM_ID);
+        return vault;
+    }
 }
 exports.default = Geist;

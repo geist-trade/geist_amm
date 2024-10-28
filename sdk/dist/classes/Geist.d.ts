@@ -78,4 +78,12 @@ export default class Geist {
             compressed: Record<string, never>;
         });
     }>[]>;
+    getLpBalances(pool: PublicKey, stablecoins: PublicKey[]): Promise<{
+        stablecoin: PublicKey;
+        balance: BN;
+    }[]>;
+    deriveVault({ pool, stablecoin }: {
+        pool: PublicKey;
+        stablecoin: PublicKey;
+    }): PublicKey;
 }
