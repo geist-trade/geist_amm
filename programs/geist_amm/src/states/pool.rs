@@ -9,14 +9,14 @@ use anchor_spl::token::{
 use crate::states::*;
 use crate::constants::*;
 use crate::errors::GeistError;
-use light_compressed_token::cpi::{
-    create_token_pool,
-    mint_to as mint_compressed_to,
-    accounts::{
-        MintToInstruction as MintCompressedToInstruction,
-        CreateTokenPoolInstruction
-    }
-};
+// use light_compressed_token::cpi::{
+//     create_token_pool,
+//     mint_to as mint_compressed_to,
+//     accounts::{
+//         MintToInstruction as MintCompressedToInstruction,
+//         CreateTokenPoolInstruction
+//     }
+// };
 use crate::borsh;
 
 #[derive(AnchorDeserialize, AnchorSerialize, Clone, Copy, Debug)]
@@ -111,7 +111,7 @@ impl Pool {
         compressed_token_program: &AccountInfo<'a>,
     ) -> Result<()> {
 
-        let signer_seeds = &[];
+        // let signer_seeds: &[_; 0] = &[];
 
         // create_token_pool(
         //     CpiContext::new_with_signer(

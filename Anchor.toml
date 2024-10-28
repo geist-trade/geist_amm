@@ -6,7 +6,6 @@ skip-lint = false
 
 [programs.localnet]
 geist_amm = "AVzr6agjgPNhh4i4bTRLt9rLv48Nj4v5qKxMvgYty21n"
-gusd = "AjXMce6dpdt37CKgSPDpQVv1q25WWK2k6ixY3xseQxLX"
 
 [registry]
 url = "https://api.apr.dev"

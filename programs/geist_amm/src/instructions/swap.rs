@@ -7,12 +7,16 @@ use anchor_spl::token::{
     Transfer
 };
 use crate::constants::*;
-use crate::states::*;
+use crate::states::{
+    SwapOut,
+    SwapIn,
+    Core,
+    Pool
+};
 use crate::errors::GeistError;
 use anchor_spl::token::spl_token::state::AccountState;
-use crate::Pool;
-use crate::program;
-use crate::borsh;
+use crate::program::*;
+use self::borsh;
 
 #[derive(AnchorDeserialize, AnchorSerialize)]
 pub struct ExactIn {
@@ -212,6 +216,16 @@ pub struct Swap<'info> {
     )]
     pub core: Account<'info, Core>,
 
+    // #[account(
+    //     mut,
+    //     seeds = [
+    //         BINARY_POOL_SEED.as_bytes(),
+    //         &args.pool_id.to_le_bytes()
+    //     ],
+    //     bump,
+    // )]
+    // pub pool: Account<'info, Pool>,
+
     #[account(
         mut,
         seeds = [
@@ -226,14 +240,14 @@ pub struct Swap<'info> {
 
     #[account(
         mut,
-        address = pool.stablecoins[args.from_id as usize],
+        constraint = stablecoin_input.key() == pool.stablecoins[args.from_id as usize],
         constraint = core.supported_stablecoins.contains(&stablecoin_input.key()) @ GeistError::StablecoinNotSupported,
     )]
     pub stablecoin_input: Account<'info, Mint>,
 
     #[account(
         mut,
-        address = pool.stablecoins[args.to_id as usize]
+        constraint = stablecoin_output.key() == pool.stablecoins[args.to_id as usize]
     )]
     pub stablecoin_output: Account<'info, Mint>,
 
@@ -322,7 +336,7 @@ impl Swap<'_> {
                 self.pool.key().as_ref(),
                 stablecoin_mint.key().as_ref()
             ], 
-            &program::GeistAmm::id()
+            &GeistAmm::id()
         );
 
         require!(

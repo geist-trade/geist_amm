@@ -16,10 +16,10 @@ use anchor_lang::system_program::{
     create_account,
     CreateAccount
 };
-use light_sdk::{
-    CPI_AUTHORITY_PDA_SEED, PROGRAM_ID_ACCOUNT_COMPRESSION, PROGRAM_ID_LIGHT_SYSTEM, PROGRAM_ID_LIGHT_TOKEN
-};
-use crate::{constants::*, geist_amm};
+// use light_sdk::{
+//     CPI_AUTHORITY_PDA_SEED, PROGRAM_ID_ACCOUNT_COMPRESSION, PROGRAM_ID_LIGHT_SYSTEM, PROGRAM_ID_LIGHT_TOKEN
+// };
+use crate::constants::*;
 use crate::program;
 use crate::states::*;
 use crate::errors::GeistError;
@@ -284,10 +284,7 @@ pub fn initialize_pool<'a>(
 
 #[derive(Accounts)]
 #[instruction(
-    amp: u64,
-    n_tokens: u64,
-    deposits: Vec<u64>,
-    fees: Fees
+    args: InitializePoolArgs
 )]
 pub struct InitializePool<'info> {
     #[account(
@@ -312,7 +309,7 @@ pub struct InitializePool<'info> {
             BINARY_POOL_SEED.as_bytes(),
             &core.next_pool_id.to_le_bytes()
         ],
-        space = Pool::INITIAL_SIZE as usize + ((n_tokens * 32) as usize),
+        space = Pool::INITIAL_SIZE as usize + ((args.n_tokens * 32) as usize),
         bump,
     )]
     pub pool: Account<'info, Pool>,
@@ -322,7 +319,8 @@ pub struct InitializePool<'info> {
         constraint = lp_token.supply == 0 @ GeistError::LpTokenPreMinted,
         constraint = lp_token.mint_authority == Some(pool.key()).into() @ GeistError::InvalidMintAuthority,
         constraint = lp_token.freeze_authority.is_none() @ GeistError::InvalidFreezeAuthority,
-        constraint = lp_token.is_initialized @ GeistError::LpTokenNotInitialized
+        constraint = lp_token.is_initialized @ GeistError::LpTokenNotInitialized,
+        constraint = lp_token.decimals == 6 @ GeistError::InvalidLpTokenDecimals
     )]
     pub lp_token: Account<'info, Mint>,
 

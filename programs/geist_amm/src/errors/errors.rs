@@ -108,5 +108,8 @@ pub enum GeistError {
     ZeroBalance,
 
     #[msg("ZeroInitialDeposit")]
-    ZeroInitialDeposit
+    ZeroInitialDeposit,
+
+    #[msg("InvalidLpTokenDecimals")]
+    InvalidLpTokenDecimals,
 }
