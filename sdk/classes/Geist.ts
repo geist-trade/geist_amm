@@ -27,7 +27,7 @@ import {
     TOKEN_PROGRAM_ID
 } from "@solana/spl-token";
 
-class Geist {
+export default class Geist {
     public connection: Connection;
     public core: PublicKey;
     public program: Program<GeistAmm>;
@@ -45,28 +45,6 @@ class Geist {
 
         // @ts-ignore
         this.program = new Program<GeistAmm>(GeistIdl);
-    }
-
-    async initializeCore({ superadmin, platformFeeBps } : { superadmin: PublicKey, platformFeeBps: number }) {
-        const [core] = PublicKey.findProgramAddressSync(
-            [
-                Buffer.from("core")
-            ],
-            PROGRAM_ID
-        );
-
-        const ix = await this
-            .program
-            .methods
-            .initializeCore({
-                platformFeeBps: new BN(platformFeeBps)
-            })
-            .accounts({
-                superadmin
-            })
-            .instruction();
-
-        return ix;
     }
 
     async getCoreData() {
