@@ -11,7 +11,7 @@ import {
     Transaction, TransactionInstruction,
     TransactionMessage, VersionedTransaction
 } from "@solana/web3.js";
-import {BinaryPool, Core, coreBeet, Pool, StableSwapMode} from "../sdk";
+import {BinaryPool, Core, coreBeet, Pool, StableSwapMode} from "../sdk/src";
 import {assert, expect} from "chai";
 import createToken from "./helpers/createToken";
 import {

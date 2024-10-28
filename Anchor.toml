@@ -16,3 +16,4 @@ wallet = "/Users/kubaplata/.config/solana/id.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+update-sdk-idl = "cp ./target/types/geist_amm.ts ./sdk/idl && cp ./target/idl/geist_amm.json ./sdk/idl"

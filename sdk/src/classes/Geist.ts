@@ -1,10 +1,11 @@
 import {
     Core,
-    createInitializeCoreInstruction,
-    createInitializePoolInstruction, ExactIn, ExactOut,
+    ExactIn,
+    ExactOut,
     Fees,
     Pool,
-    PROGRAM_ID, SwapMode
+    PROGRAM_ID,
+    SwapMode
 } from "../generated";
 import {
     AccountMeta,
@@ -17,8 +18,8 @@ import {
 } from "@solana/web3.js";
 import BN from "bn.js";
 import { Program } from "@coral-xyz/anchor";
-import {GeistAmm} from "../../target/types/geist_amm";
-import GeistIdl from "../../target/idl/geist_amm.json";
+import {GeistAmm} from "../idl/geist_amm";
+import GeistIdl from "../idl/geist_amm.json";
 import {BalanceChange} from "../types";
 import {
     createInitializeMintInstruction,

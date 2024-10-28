@@ -1,9 +1,8 @@
-import Geist from "./Geist";
 import {Connection, PublicKey} from "@solana/web3.js";
 import {Program} from "@coral-xyz/anchor";
-import {GeistAmm} from "../../target/types/geist_amm";
+import {GeistAmm} from "../idl/geist_amm";
 import {Core, PROGRAM_ID} from "../generated";
-import GeistIdl from "../../target/idl/geist_amm.json";
+import GeistIdl from "../idl/geist_amm.json";
 import BN from "bn.js";
 
 export default class GeistAdmin {
