@@ -44,4 +44,38 @@ export default class Geist {
         lpTokenBurn: BN;
         user: PublicKey;
     }): Promise<TransactionInstruction>;
+    getAllPools(): Promise<import("@coral-xyz/anchor").ProgramAccount<{
+        index: BN;
+        bump: number;
+        admin: PublicKey;
+        stablecoins: PublicKey[];
+        isFrozen: boolean;
+        lpToken: PublicKey;
+        swap: {
+            amp: BN;
+            nTokens: BN;
+            mode: ({
+                multi?: never;
+            } & {
+                binary: Record<string, never>;
+            }) | ({
+                binary?: never;
+            } & {
+                multi: Record<string, never>;
+            });
+        };
+        fees: {
+            swapFeeBps: BN;
+            liquidityRemovalFeeBps: BN;
+        };
+        tokenMode: ({
+            compressed?: never;
+        } & {
+            spl: Record<string, never>;
+        }) | ({
+            spl?: never;
+        } & {
+            compressed: Record<string, never>;
+        });
+    }>[]>;
 }

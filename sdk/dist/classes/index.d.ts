@@ -1,2 +1,3 @@
-export * from "./Geist";
-export * from "./GeistAdmin";
+import Geist from "./Geist";
+import GeistAdmin from "./GeistAdmin";
+export { Geist, GeistAdmin };

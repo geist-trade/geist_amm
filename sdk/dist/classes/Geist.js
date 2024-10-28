@@ -214,5 +214,15 @@ class Geist {
             return ix;
         });
     }
+    getAllPools() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const pools = yield this
+                .program
+                .account
+                .pool
+                .all();
+            return pools;
+        });
+    }
 }
 exports.default = Geist;

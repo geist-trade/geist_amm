@@ -312,4 +312,14 @@ export default class Geist {
 
         return ix;
     }
+
+    async getAllPools(){
+        const pools = await this
+            .program
+            .account
+            .pool
+            .all();
+
+        return pools;
+    }
 }
