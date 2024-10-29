@@ -40,4 +40,28 @@ export default class SimulatedPool {
             outAmount
         );
     }
+
+    simulateAddLiquidity(
+        deposits: BN[],
+        balances: BN[],
+        lpTokenSupply: BN
+    ) {
+        return this.stableSwap.computeLpTokensOnDepositMulti(
+            deposits,
+            balances,
+            lpTokenSupply
+        );
+    }
+
+    simulateWithdrawLiquidity(
+        balances: BN[],
+        lpTokenSupply: BN,
+        lpTokenWithdrawal: BN
+    ) {
+        return this.stableSwap.computeTokensOnWithdrawal(
+            balances,
+            lpTokenSupply,
+            lpTokenWithdrawal
+        );
+    }
 }
