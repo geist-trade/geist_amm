@@ -1,17 +1,15 @@
-import { Connection, PublicKey } from "@solana/web3.js";
-import { Program } from "@coral-xyz/anchor";
-import { GeistAmm } from "../idl/geist_amm";
+import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 import { Core } from "../generated";
 export default class GeistAdmin {
     connection: Connection;
     core: PublicKey;
-    program: Program<GeistAmm>;
-    constructor({ connection }: {
+    superadmin: Keypair;
+    constructor({ connection, superadmin }: {
         connection: Connection;
+        superadmin: Keypair;
     });
     getCoreData(): Promise<Core>;
-    initializeCore({ superadmin, platformFeeBps }: {
-        superadmin: PublicKey;
+    initializeCore({ platformFeeBps }: {
         platformFeeBps: number;
     }): Promise<import("@solana/web3.js").TransactionInstruction>;
     addSupportForStablecoin({ stablecoin }: {

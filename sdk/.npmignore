@@ -3,3 +3,6 @@
 yarn.lock
 ./src
 package-lock.json
+node_modules
+./src/setup
+./dist/setup

@@ -93,7 +93,7 @@ class Core {
      *
      * @param programId - the program that owns the accounts we are filtering
      */
-    static gpaBuilder(programId = new web3.PublicKey('AVzr6agjgPNhh4i4bTRLt9rLv48Nj4v5qKxMvgYty21n')) {
+    static gpaBuilder(programId = new web3.PublicKey('HTHyAbn3YXReoNWRczVasQkocnbXB4TASkjMpHrEGS9Q')) {
         return beetSolana.GpaBuilder.fromStruct(programId, exports.coreBeet);
     }
     /**

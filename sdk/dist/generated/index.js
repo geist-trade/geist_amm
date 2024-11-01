@@ -26,7 +26,7 @@ __exportStar(require("./types"), exports);
  * @category constants
  * @category generated
  */
-exports.PROGRAM_ADDRESS = 'AVzr6agjgPNhh4i4bTRLt9rLv48Nj4v5qKxMvgYty21n';
+exports.PROGRAM_ADDRESS = 'HTHyAbn3YXReoNWRczVasQkocnbXB4TASkjMpHrEGS9Q';
 /**
  * Program public key
  *

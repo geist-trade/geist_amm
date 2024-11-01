@@ -57,7 +57,7 @@ exports.withdrawLiquidityInstructionDiscriminator = [
  * @category WithdrawLiquidity
  * @category generated
  */
-function createWithdrawLiquidityInstruction(accounts, args, programId = new web3.PublicKey('AVzr6agjgPNhh4i4bTRLt9rLv48Nj4v5qKxMvgYty21n')) {
+function createWithdrawLiquidityInstruction(accounts, args, programId = new web3.PublicKey('HTHyAbn3YXReoNWRczVasQkocnbXB4TASkjMpHrEGS9Q')) {
     var _a;
     const [data] = exports.withdrawLiquidityStruct.serialize(Object.assign({ instructionDiscriminator: exports.withdrawLiquidityInstructionDiscriminator }, args));
     const keys = [

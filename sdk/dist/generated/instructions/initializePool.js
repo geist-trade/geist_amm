@@ -57,7 +57,7 @@ exports.initializePoolInstructionDiscriminator = [
  * @category InitializePool
  * @category generated
  */
-function createInitializePoolInstruction(accounts, args, programId = new web3.PublicKey('AVzr6agjgPNhh4i4bTRLt9rLv48Nj4v5qKxMvgYty21n')) {
+function createInitializePoolInstruction(accounts, args, programId = new web3.PublicKey('HTHyAbn3YXReoNWRczVasQkocnbXB4TASkjMpHrEGS9Q')) {
     var _a, _b, _c;
     const [data] = exports.initializePoolStruct.serialize(Object.assign({ instructionDiscriminator: exports.initializePoolInstructionDiscriminator }, args));
     const keys = [
@@ -82,11 +82,6 @@ function createInitializePoolInstruction(accounts, args, programId = new web3.Pu
             isSigner: false,
         },
         {
-            pubkey: accounts.lightLpTokenPool,
-            isWritable: false,
-            isSigner: false,
-        },
-        {
             pubkey: accounts.lpTokenAdminAta,
             isWritable: true,
             isSigner: false,
@@ -103,51 +98,6 @@ function createInitializePoolInstruction(accounts, args, programId = new web3.Pu
         },
         {
             pubkey: (_c = accounts.systemProgram) !== null && _c !== void 0 ? _c : web3.SystemProgram.programId,
-            isWritable: false,
-            isSigner: false,
-        },
-        {
-            pubkey: accounts.merkleTree,
-            isWritable: false,
-            isSigner: false,
-        },
-        {
-            pubkey: accounts.noopProgram,
-            isWritable: false,
-            isSigner: false,
-        },
-        {
-            pubkey: accounts.lightSystemProgram,
-            isWritable: false,
-            isSigner: false,
-        },
-        {
-            pubkey: accounts.accountCompressionProgram,
-            isWritable: false,
-            isSigner: false,
-        },
-        {
-            pubkey: accounts.compressedTokenProgram,
-            isWritable: false,
-            isSigner: false,
-        },
-        {
-            pubkey: accounts.lightCpiAuthority,
-            isWritable: false,
-            isSigner: false,
-        },
-        {
-            pubkey: accounts.lightRegisteredProgram,
-            isWritable: false,
-            isSigner: false,
-        },
-        {
-            pubkey: accounts.selfProgram,
-            isWritable: false,
-            isSigner: false,
-        },
-        {
-            pubkey: accounts.accountCompressionAuthority,
             isWritable: false,
             isSigner: false,
         },

@@ -19,7 +19,7 @@ async function createToken(
 
     const ix = createInitializeMintInstruction(
         keypair.publicKey,
-        9,
+        6,
         payer.publicKey,
         payer.publicKey
     );

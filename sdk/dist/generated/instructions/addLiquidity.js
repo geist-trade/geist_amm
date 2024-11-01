@@ -57,7 +57,7 @@ exports.addLiquidityInstructionDiscriminator = [
  * @category AddLiquidity
  * @category generated
  */
-function createAddLiquidityInstruction(accounts, args, programId = new web3.PublicKey('AVzr6agjgPNhh4i4bTRLt9rLv48Nj4v5qKxMvgYty21n')) {
+function createAddLiquidityInstruction(accounts, args, programId = new web3.PublicKey('HTHyAbn3YXReoNWRczVasQkocnbXB4TASkjMpHrEGS9Q')) {
     var _a;
     const [data] = exports.addLiquidityStruct.serialize(Object.assign({ instructionDiscriminator: exports.addLiquidityInstructionDiscriminator }, args));
     const keys = [

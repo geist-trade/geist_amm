@@ -1,1067 +1,314 @@
 {
-  "address": "AVzr6agjgPNhh4i4bTRLt9rLv48Nj4v5qKxMvgYty21n",
-  "metadata": {
-    "name": "geist_amm",
-    "version": "0.1.0",
-    "spec": "0.1.0",
-    "description": "Created with Anchor"
-  },
+  "version": "0.1.0",
+  "name": "geist_amm",
   "instructions": [
     {
-      "name": "add_liquidity",
-      "discriminator": [
-        181,
-        157,
-        89,
-        67,
-        143,
-        182,
-        52,
-        72
-      ],
+      "name": "initializeCore",
       "accounts": [
         {
-          "name": "user",
-          "writable": true,
-          "signer": true
+          "name": "superadmin",
+          "isMut": true,
+          "isSigner": true
         },
         {
           "name": "core",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  114,
-                  101
-                ]
-              }
-            ]
-          }
+          "isMut": true,
+          "isSigner": false
         },
         {
-          "name": "pool",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  98,
-                  105,
-                  110,
-                  97,
-                  114,
-                  121,
-                  95,
-                  112,
-                  111,
-                  111,
-                  108
-                ]
-              },
-              {
-                "kind": "arg",
-                "path": "args.pool_id"
-              }
-            ]
-          }
-        },
-        {
-          "name": "lp_token",
-          "writable": true
-        },
-        {
-          "name": "lp_token_user_ata",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "user"
-              },
-              {
-                "kind": "const",
-                "value": [
-                  6,
-                  221,
-                  246,
-                  225,
-                  215,
-                  101,
-                  161,
-                  147,
-                  217,
-                  203,
-                  225,
-                  70,
-                  206,
-                  235,
-                  121,
-                  172,
-                  28,
-                  180,
-                  133,
-                  237,
-                  95,
-                  91,
-                  55,
-                  145,
-                  58,
-                  140,
-                  245,
-                  133,
-                  126,
-                  255,
-                  0,
-                  169
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "lp_token"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
-        },
-        {
-          "name": "token_program",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
         }
       ],
       "args": [
         {
           "name": "args",
           "type": {
-            "defined": {
-              "name": "AddLiquidityArgs"
-            }
+            "defined": "InitializeCoreArgs"
           }
         }
       ]
     },
     {
-      "name": "add_stablecoin",
-      "discriminator": [
-        184,
-        160,
-        218,
-        168,
-        41,
-        5,
-        46,
-        54
-      ],
+      "name": "addStablecoin",
       "accounts": [
         {
           "name": "superadmin",
-          "writable": true,
-          "signer": true,
-          "relations": [
-            "core"
-          ]
+          "isMut": true,
+          "isSigner": true
         },
         {
           "name": "core",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  114,
-                  101
-                ]
-              }
-            ]
-          }
+          "isMut": true,
+          "isSigner": false
         },
         {
           "name": "stablecoin",
-          "writable": true
+          "isMut": true,
+          "isSigner": false
         },
         {
           "name": "rent",
-          "address": "SysvarRent111111111111111111111111111111111"
+          "isMut": false,
+          "isSigner": false
         },
         {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
         }
       ],
       "args": []
     },
     {
-      "name": "disable_stablecoin",
-      "discriminator": [
-        166,
-        47,
-        238,
-        242,
-        60,
-        220,
-        52,
-        54
-      ],
+      "name": "disableStablecoin",
       "accounts": [
         {
           "name": "superadmin",
-          "writable": true,
-          "signer": true,
-          "relations": [
-            "core"
-          ]
+          "isMut": true,
+          "isSigner": true
         },
         {
           "name": "core",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  114,
-                  101
-                ]
-              }
-            ]
-          }
+          "isMut": true,
+          "isSigner": false
         },
         {
           "name": "stablecoin",
-          "writable": true
+          "isMut": true,
+          "isSigner": false
         }
       ],
       "args": []
     },
     {
-      "name": "get_virtual_price",
-      "discriminator": [
-        41,
-        165,
-        98,
-        171,
-        1,
-        184,
-        61,
-        157
-      ],
+      "name": "initializePool",
       "accounts": [
         {
-          "name": "user",
-          "writable": true,
-          "signer": true
+          "name": "admin",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "core",
+          "isMut": true,
+          "isSigner": false
         },
         {
           "name": "pool",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  98,
-                  105,
-                  110,
-                  97,
-                  114,
-                  121,
-                  95,
-                  112,
-                  111,
-                  111,
-                  108
-                ]
-              },
-              {
-                "kind": "arg",
-                "path": "args.pool_id"
-              }
-            ]
-          }
+          "isMut": true,
+          "isSigner": false
         },
         {
-          "name": "lp_token",
-          "writable": true
+          "name": "lpToken",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lpTokenAdminAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
         }
       ],
       "args": [
         {
           "name": "args",
           "type": {
-            "defined": {
-              "name": "GetVirtualPriceArgs"
-            }
+            "defined": "InitializePoolArgs"
+          }
+        }
+      ]
+    },
+    {
+      "name": "addLiquidity",
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "core",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "pool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lpToken",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lpTokenUserAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": "AddLiquidityArgs"
+          }
+        }
+      ]
+    },
+    {
+      "name": "withdrawLiquidity",
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "core",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "pool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lpToken",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lpTokenUserAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": "WithdrawLiquidityArgs"
+          }
+        }
+      ]
+    },
+    {
+      "name": "getVirtualPrice",
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "pool",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "lpToken",
+          "isMut": true,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": "GetVirtualPriceArgs"
           }
         }
       ],
       "returns": "u64"
     },
     {
-      "name": "initialize_core",
-      "discriminator": [
-        26,
-        107,
-        177,
-        14,
-        71,
-        136,
-        11,
-        91
-      ],
-      "accounts": [
-        {
-          "name": "superadmin",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "core",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  114,
-                  101
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": [
-        {
-          "name": "args",
-          "type": {
-            "defined": {
-              "name": "InitializeCoreArgs"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "initialize_pool",
-      "discriminator": [
-        95,
-        180,
-        10,
-        172,
-        84,
-        174,
-        232,
-        40
-      ],
-      "accounts": [
-        {
-          "name": "admin",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "core",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  114,
-                  101
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "pool",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  98,
-                  105,
-                  110,
-                  97,
-                  114,
-                  121,
-                  95,
-                  112,
-                  111,
-                  111,
-                  108
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "core.next_pool_id",
-                "account": "Core"
-              }
-            ]
-          }
-        },
-        {
-          "name": "lp_token",
-          "writable": true
-        },
-        {
-          "name": "lp_token_admin_ata",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "admin"
-              },
-              {
-                "kind": "const",
-                "value": [
-                  6,
-                  221,
-                  246,
-                  225,
-                  215,
-                  101,
-                  161,
-                  147,
-                  217,
-                  203,
-                  225,
-                  70,
-                  206,
-                  235,
-                  121,
-                  172,
-                  28,
-                  180,
-                  133,
-                  237,
-                  95,
-                  91,
-                  55,
-                  145,
-                  58,
-                  140,
-                  245,
-                  133,
-                  126,
-                  255,
-                  0,
-                  169
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "lp_token"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
-        },
-        {
-          "name": "rent",
-          "address": "SysvarRent111111111111111111111111111111111"
-        },
-        {
-          "name": "token_program",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
-        },
-        {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": [
-        {
-          "name": "args",
-          "type": {
-            "defined": {
-              "name": "InitializePoolArgs"
-            }
-          }
-        }
-      ]
-    },
-    {
       "name": "swap",
-      "discriminator": [
-        248,
-        198,
-        158,
-        145,
-        225,
-        117,
-        135,
-        200
-      ],
       "accounts": [
         {
           "name": "user",
-          "writable": true,
-          "signer": true
+          "isMut": true,
+          "isSigner": true
         },
         {
           "name": "core",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  114,
-                  101
-                ]
-              }
-            ]
-          }
+          "isMut": true,
+          "isSigner": false
         },
         {
           "name": "pool",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  98,
-                  105,
-                  110,
-                  97,
-                  114,
-                  121,
-                  95,
-                  112,
-                  111,
-                  111,
-                  108
-                ]
-              },
-              {
-                "kind": "arg",
-                "path": "args.pool_id"
-              }
-            ]
-          }
+          "isMut": true,
+          "isSigner": false
         },
         {
-          "name": "stablecoin_input",
-          "writable": true
+          "name": "stablecoinInput",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          "name": "stablecoin_output",
-          "writable": true
+          "name": "stablecoinOutput",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          "name": "stablecoin_input_vault",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  118,
-                  97,
-                  117,
-                  108,
-                  116
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "pool"
-              },
-              {
-                "kind": "account",
-                "path": "stablecoin_input"
-              }
-            ]
-          }
+          "name": "stablecoinInputVault",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          "name": "stablecoin_output_vault",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  118,
-                  97,
-                  117,
-                  108,
-                  116
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "pool"
-              },
-              {
-                "kind": "account",
-                "path": "stablecoin_output"
-              }
-            ]
-          }
+          "name": "stablecoinOutputVault",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          "name": "stablecoin_input_user_ata",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "user"
-              },
-              {
-                "kind": "const",
-                "value": [
-                  6,
-                  221,
-                  246,
-                  225,
-                  215,
-                  101,
-                  161,
-                  147,
-                  217,
-                  203,
-                  225,
-                  70,
-                  206,
-                  235,
-                  121,
-                  172,
-                  28,
-                  180,
-                  133,
-                  237,
-                  95,
-                  91,
-                  55,
-                  145,
-                  58,
-                  140,
-                  245,
-                  133,
-                  126,
-                  255,
-                  0,
-                  169
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "stablecoin_input"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
+          "name": "stablecoinInputUserAta",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          "name": "stablecoin_output_user_ata",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "user"
-              },
-              {
-                "kind": "const",
-                "value": [
-                  6,
-                  221,
-                  246,
-                  225,
-                  215,
-                  101,
-                  161,
-                  147,
-                  217,
-                  203,
-                  225,
-                  70,
-                  206,
-                  235,
-                  121,
-                  172,
-                  28,
-                  180,
-                  133,
-                  237,
-                  95,
-                  91,
-                  55,
-                  145,
-                  58,
-                  140,
-                  245,
-                  133,
-                  126,
-                  255,
-                  0,
-                  169
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "stablecoin_output"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
+          "name": "stablecoinOutputUserAta",
+          "isMut": true,
+          "isSigner": false
         },
         {
-          "name": "token_program",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
         }
       ],
       "args": [
         {
           "name": "args",
           "type": {
-            "defined": {
-              "name": "SwapArgs"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "withdraw_liquidity",
-      "discriminator": [
-        149,
-        158,
-        33,
-        185,
-        47,
-        243,
-        253,
-        31
-      ],
-      "accounts": [
-        {
-          "name": "user",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "core",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  114,
-                  101
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "pool",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  98,
-                  105,
-                  110,
-                  97,
-                  114,
-                  121,
-                  95,
-                  112,
-                  111,
-                  111,
-                  108
-                ]
-              },
-              {
-                "kind": "arg",
-                "path": "args.pool_id"
-              }
-            ]
-          }
-        },
-        {
-          "name": "lp_token",
-          "writable": true
-        },
-        {
-          "name": "lp_token_user_ata",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "user"
-              },
-              {
-                "kind": "const",
-                "value": [
-                  6,
-                  221,
-                  246,
-                  225,
-                  215,
-                  101,
-                  161,
-                  147,
-                  217,
-                  203,
-                  225,
-                  70,
-                  206,
-                  235,
-                  121,
-                  172,
-                  28,
-                  180,
-                  133,
-                  237,
-                  95,
-                  91,
-                  55,
-                  145,
-                  58,
-                  140,
-                  245,
-                  133,
-                  126,
-                  255,
-                  0,
-                  169
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "lp_token"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
-        },
-        {
-          "name": "token_program",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
-        }
-      ],
-      "args": [
-        {
-          "name": "args",
-          "type": {
-            "defined": {
-              "name": "WithdrawLiquidityArgs"
-            }
+            "defined": "SwapArgs"
           }
         }
       ]
@@ -1070,29 +317,323 @@
   "accounts": [
     {
       "name": "Core",
-      "discriminator": [
-        90,
-        167,
-        99,
-        154,
-        192,
-        227,
-        13,
-        62
-      ]
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "nextPoolId",
+            "type": "u64"
+          },
+          {
+            "name": "superadmin",
+            "type": "publicKey"
+          },
+          {
+            "name": "platformFeeBps",
+            "type": "u64"
+          },
+          {
+            "name": "supportedStablecoins",
+            "type": {
+              "vec": "publicKey"
+            }
+          },
+          {
+            "name": "withdrawOnlyStablecoins",
+            "type": {
+              "vec": "publicKey"
+            }
+          },
+          {
+            "name": "isFrozen",
+            "type": "bool"
+          }
+        ]
+      }
     },
     {
       "name": "Pool",
-      "discriminator": [
-        241,
-        154,
-        109,
-        4,
-        17,
-        177,
-        109,
-        188
-      ]
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "index",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "admin",
+            "type": "publicKey"
+          },
+          {
+            "name": "stablecoins",
+            "type": {
+              "vec": "publicKey"
+            }
+          },
+          {
+            "name": "isFrozen",
+            "type": "bool"
+          },
+          {
+            "name": "lpToken",
+            "type": "publicKey"
+          },
+          {
+            "name": "swap",
+            "type": {
+              "defined": "StableSwap"
+            }
+          },
+          {
+            "name": "fees",
+            "type": {
+              "defined": "Fees"
+            }
+          },
+          {
+            "name": "tokenMode",
+            "type": {
+              "defined": "TokenMode"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "types": [
+    {
+      "name": "InitializeCoreArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "platformFeeBps",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GetVirtualPriceArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "poolId",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "InitializePoolArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "amp",
+            "type": "u64"
+          },
+          {
+            "name": "nTokens",
+            "type": "u64"
+          },
+          {
+            "name": "deposits",
+            "type": {
+              "vec": "u64"
+            }
+          },
+          {
+            "name": "fees",
+            "type": {
+              "defined": "Fees"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "AddLiquidityArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "poolId",
+            "type": "u64"
+          },
+          {
+            "name": "deposits",
+            "type": {
+              "vec": "u64"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "WithdrawLiquidityArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "poolId",
+            "type": "u64"
+          },
+          {
+            "name": "lpTokenBurn",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ExactIn",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "minimumReceived",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ExactOut",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "maximumTaken",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SwapArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "poolId",
+            "type": "u64"
+          },
+          {
+            "name": "fromId",
+            "type": "u8"
+          },
+          {
+            "name": "toId",
+            "type": "u8"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "mode",
+            "type": {
+              "defined": "SwapMode"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "SwapMode",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "ExactIn",
+            "fields": [
+              {
+                "defined": "ExactIn"
+              }
+            ]
+          },
+          {
+            "name": "ExactOut",
+            "fields": [
+              {
+                "defined": "ExactOut"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Fees",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "swapFeeBps",
+            "type": "u64"
+          },
+          {
+            "name": "liquidityRemovalFeeBps",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TokenMode",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "SPL"
+          },
+          {
+            "name": "COMPRESSED"
+          }
+        ]
+      }
+    },
+    {
+      "name": "StableSwap",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "amp",
+            "type": "u64"
+          },
+          {
+            "name": "nTokens",
+            "type": "u64"
+          },
+          {
+            "name": "mode",
+            "type": {
+              "defined": "StableSwapMode"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "StableSwapMode",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "BINARY"
+          },
+          {
+            "name": "MULTI"
+          }
+        ]
+      }
     }
   ],
   "errors": [
@@ -1275,359 +816,11 @@
       "code": 6035,
       "name": "ZeroInitialDeposit",
       "msg": "ZeroInitialDeposit"
-    }
-  ],
-  "types": [
-    {
-      "name": "AddLiquidityArgs",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "pool_id",
-            "type": "u64"
-          },
-          {
-            "name": "deposits",
-            "type": {
-              "vec": "u64"
-            }
-          }
-        ]
-      }
     },
     {
-      "name": "Core",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "next_pool_id",
-            "type": "u64"
-          },
-          {
-            "name": "superadmin",
-            "type": "pubkey"
-          },
-          {
-            "name": "platform_fee_bps",
-            "type": "u64"
-          },
-          {
-            "name": "supported_stablecoins",
-            "type": {
-              "vec": "pubkey"
-            }
-          },
-          {
-            "name": "withdraw_only_stablecoins",
-            "type": {
-              "vec": "pubkey"
-            }
-          },
-          {
-            "name": "is_frozen",
-            "type": "bool"
-          }
-        ]
-      }
-    },
-    {
-      "name": "ExactIn",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "minimum_received",
-            "type": "u64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "ExactOut",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "maximum_taken",
-            "type": "u64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "Fees",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "swap_fee_bps",
-            "type": "u64"
-          },
-          {
-            "name": "liquidity_removal_fee_bps",
-            "type": "u64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "GetVirtualPriceArgs",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "pool_id",
-            "type": "u64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "InitializeCoreArgs",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "platform_fee_bps",
-            "type": "u64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "InitializePoolArgs",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "amp",
-            "type": "u64"
-          },
-          {
-            "name": "n_tokens",
-            "type": "u64"
-          },
-          {
-            "name": "deposits",
-            "type": {
-              "vec": "u64"
-            }
-          },
-          {
-            "name": "fees",
-            "type": {
-              "defined": {
-                "name": "Fees"
-              }
-            }
-          }
-        ]
-      }
-    },
-    {
-      "name": "Pool",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "index",
-            "type": "u64"
-          },
-          {
-            "name": "bump",
-            "type": "u8"
-          },
-          {
-            "name": "admin",
-            "type": "pubkey"
-          },
-          {
-            "name": "stablecoins",
-            "type": {
-              "vec": "pubkey"
-            }
-          },
-          {
-            "name": "is_frozen",
-            "type": "bool"
-          },
-          {
-            "name": "lp_token",
-            "type": "pubkey"
-          },
-          {
-            "name": "swap",
-            "type": {
-              "defined": {
-                "name": "StableSwap"
-              }
-            }
-          },
-          {
-            "name": "fees",
-            "type": {
-              "defined": {
-                "name": "Fees"
-              }
-            }
-          },
-          {
-            "name": "token_mode",
-            "type": {
-              "defined": {
-                "name": "TokenMode"
-              }
-            }
-          }
-        ]
-      }
-    },
-    {
-      "name": "StableSwap",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "amp",
-            "type": "u64"
-          },
-          {
-            "name": "n_tokens",
-            "type": "u64"
-          },
-          {
-            "name": "mode",
-            "type": {
-              "defined": {
-                "name": "StableSwapMode"
-              }
-            }
-          }
-        ]
-      }
-    },
-    {
-      "name": "StableSwapMode",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "BINARY"
-          },
-          {
-            "name": "MULTI"
-          }
-        ]
-      }
-    },
-    {
-      "name": "SwapArgs",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "pool_id",
-            "type": "u64"
-          },
-          {
-            "name": "from_id",
-            "type": "u8"
-          },
-          {
-            "name": "to_id",
-            "type": "u8"
-          },
-          {
-            "name": "amount",
-            "type": "u64"
-          },
-          {
-            "name": "mode",
-            "type": {
-              "defined": {
-                "name": "SwapMode"
-              }
-            }
-          }
-        ]
-      }
-    },
-    {
-      "name": "SwapMode",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "ExactIn",
-            "fields": [
-              {
-                "defined": {
-                  "name": "ExactIn"
-                }
-              }
-            ]
-          },
-          {
-            "name": "ExactOut",
-            "fields": [
-              {
-                "defined": {
-                  "name": "ExactOut"
-                }
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "name": "TokenMode",
-      "type": {
-        "kind": "enum",
-        "variants": [
-          {
-            "name": "SPL"
-          },
-          {
-            "name": "COMPRESSED"
-          }
-        ]
-      }
-    },
-    {
-      "name": "WithdrawLiquidityArgs",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "pool_id",
-            "type": "u64"
-          },
-          {
-            "name": "lp_token_burn",
-            "type": "u64"
-          }
-        ]
-      }
-    }
-  ],
-  "constants": [
-    {
-      "name": "BINARY_POOL_SEED",
-      "type": "string",
-      "value": "\"binary_pool\""
-    },
-    {
-      "name": "CORE_SEED",
-      "type": "string",
-      "value": "\"core\""
-    },
-    {
-      "name": "VAULT_SEED",
-      "type": "string",
-      "value": "\"vault\""
+      "code": 6036,
+      "name": "InvalidLpTokenDecimals",
+      "msg": "InvalidLpTokenDecimals"
     }
   ]
 }

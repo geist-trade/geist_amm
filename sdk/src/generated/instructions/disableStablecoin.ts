@@ -50,7 +50,7 @@ export const disableStablecoinInstructionDiscriminator = [
  */
 export function createDisableStablecoinInstruction(
   accounts: DisableStablecoinInstructionAccounts,
-  programId = new web3.PublicKey('AVzr6agjgPNhh4i4bTRLt9rLv48Nj4v5qKxMvgYty21n')
+  programId = new web3.PublicKey('HTHyAbn3YXReoNWRczVasQkocnbXB4TASkjMpHrEGS9Q')
 ) {
   const [data] = disableStablecoinStruct.serialize({
     instructionDiscriminator: disableStablecoinInstructionDiscriminator,

@@ -56,7 +56,7 @@ exports.getVirtualPriceInstructionDiscriminator = [
  * @category GetVirtualPrice
  * @category generated
  */
-function createGetVirtualPriceInstruction(accounts, args, programId = new web3.PublicKey('AVzr6agjgPNhh4i4bTRLt9rLv48Nj4v5qKxMvgYty21n')) {
+function createGetVirtualPriceInstruction(accounts, args, programId = new web3.PublicKey('HTHyAbn3YXReoNWRczVasQkocnbXB4TASkjMpHrEGS9Q')) {
     const [data] = exports.getVirtualPriceStruct.serialize(Object.assign({ instructionDiscriminator: exports.getVirtualPriceInstructionDiscriminator }, args));
     const keys = [
         {

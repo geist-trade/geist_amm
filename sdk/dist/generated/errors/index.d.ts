@@ -405,6 +405,17 @@ export declare class ZeroInitialDepositError extends Error {
     constructor();
 }
 /**
+ * InvalidLpTokenDecimals: 'InvalidLpTokenDecimals'
+ *
+ * @category Errors
+ * @category generated
+ */
+export declare class InvalidLpTokenDecimalsError extends Error {
+    readonly code: number;
+    readonly name: string;
+    constructor();
+}
+/**
  * Attempts to resolve a custom program error from the provided error code.
  * @category Errors
  * @category generated

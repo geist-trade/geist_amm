@@ -15,10 +15,8 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.accountProviders = void 0;
-__exportStar(require("./BinaryPool"), exports);
 __exportStar(require("./Core"), exports);
 __exportStar(require("./Pool"), exports);
-const BinaryPool_1 = require("./BinaryPool");
 const Core_1 = require("./Core");
 const Pool_1 = require("./Pool");
-exports.accountProviders = { BinaryPool: BinaryPool_1.BinaryPool, Core: Core_1.Core, Pool: Pool_1.Pool };
+exports.accountProviders = { Core: Core_1.Core, Pool: Pool_1.Pool };

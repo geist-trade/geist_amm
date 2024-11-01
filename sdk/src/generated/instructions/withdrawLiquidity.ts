@@ -76,7 +76,7 @@ export const withdrawLiquidityInstructionDiscriminator = [
 export function createWithdrawLiquidityInstruction(
   accounts: WithdrawLiquidityInstructionAccounts,
   args: WithdrawLiquidityInstructionArgs,
-  programId = new web3.PublicKey('AVzr6agjgPNhh4i4bTRLt9rLv48Nj4v5qKxMvgYty21n')
+  programId = new web3.PublicKey('HTHyAbn3YXReoNWRczVasQkocnbXB4TASkjMpHrEGS9Q')
 ) {
   const [data] = withdrawLiquidityStruct.serialize({
     instructionDiscriminator: withdrawLiquidityInstructionDiscriminator,

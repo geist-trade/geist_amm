@@ -1,13 +1,10 @@
-import { Core, ExactIn, ExactOut, Fees } from "../generated";
+import { Core, ExactIn, ExactOut, Fees, Pool } from "../generated";
 import { AccountMeta, Connection, PublicKey, TransactionInstruction } from "@solana/web3.js";
 import BN from "bn.js";
-import { Program } from "@coral-xyz/anchor";
-import { GeistAmm } from "../idl/geist_amm";
 import { BalanceChange } from "../types";
 export default class Geist {
     connection: Connection;
     core: PublicKey;
-    program: Program<GeistAmm>;
     constructor({ connection }: {
         connection: Connection;
     });
@@ -21,7 +18,7 @@ export default class Geist {
         lpToken: PublicKey;
     }>;
     derivePool(id: number | BN): [PublicKey, number];
-    initializePool({ amp, deposits, fees: { swapFeeBps, liquidityRemovalFeeBps }, user }: {
+    initializePool({ amp, deposits, fees, user }: {
         amp: BN;
         deposits: BalanceChange[];
         fees: Fees;
@@ -32,52 +29,20 @@ export default class Geist {
         deposits: BalanceChange[];
         user: PublicKey;
     }): Promise<TransactionInstruction>;
-    swap({ poolId, input, output, type, amount }: {
+    swap({ poolId, input, output, type, amount, user }: {
         poolId: BN;
         input: PublicKey;
         output: PublicKey;
         type: ExactIn | ExactOut;
         amount: BN;
+        user: PublicKey;
     }): Promise<TransactionInstruction>;
     withdrawLiquidity({ poolId, lpTokenBurn, user }: {
         poolId: BN;
         lpTokenBurn: BN;
         user: PublicKey;
     }): Promise<TransactionInstruction>;
-    getAllPools(): Promise<import("@coral-xyz/anchor").ProgramAccount<{
-        index: BN;
-        bump: number;
-        admin: PublicKey;
-        stablecoins: PublicKey[];
-        isFrozen: boolean;
-        lpToken: PublicKey;
-        swap: {
-            amp: BN;
-            nTokens: BN;
-            mode: ({
-                multi?: never;
-            } & {
-                binary: Record<string, never>;
-            }) | ({
-                binary?: never;
-            } & {
-                multi: Record<string, never>;
-            });
-        };
-        fees: {
-            swapFeeBps: BN;
-            liquidityRemovalFeeBps: BN;
-        };
-        tokenMode: ({
-            compressed?: never;
-        } & {
-            spl: Record<string, never>;
-        }) | ({
-            spl?: never;
-        } & {
-            compressed: Record<string, never>;
-        });
-    }>[]>;
+    getAllPools(): Promise<Pool[]>;
     getLpBalances(pool: PublicKey, stablecoins: PublicKey[]): Promise<{
         stablecoin: PublicKey;
         balance: BN;
@@ -91,40 +56,14 @@ export default class Geist {
             stablecoin: PublicKey;
             balance: BN;
         }[];
-        publicKey: PublicKey;
-        account: {
-            index: BN;
-            bump: number;
-            admin: PublicKey;
-            stablecoins: PublicKey[];
-            isFrozen: boolean;
-            lpToken: PublicKey;
-            swap: {
-                amp: BN;
-                nTokens: BN;
-                mode: ({
-                    multi?: never;
-                } & {
-                    binary: Record<string, never>;
-                }) | ({
-                    binary?: never;
-                } & {
-                    multi: Record<string, never>;
-                });
-            };
-            fees: {
-                swapFeeBps: BN;
-                liquidityRemovalFeeBps: BN;
-            };
-            tokenMode: ({
-                compressed?: never;
-            } & {
-                spl: Record<string, never>;
-            }) | ({
-                spl?: never;
-            } & {
-                compressed: Record<string, never>;
-            });
-        };
+        index: import("@metaplex-foundation/beet").bignum;
+        bump: number;
+        admin: PublicKey;
+        stablecoins: PublicKey[];
+        isFrozen: boolean;
+        lpToken: PublicKey;
+        swap: import("../generated").StableSwap;
+        fees: Fees;
+        tokenMode: import("../generated").TokenMode;
     }[]>;
 }

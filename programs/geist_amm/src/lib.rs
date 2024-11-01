@@ -8,7 +8,7 @@ use anchor_lang::prelude::*;
 use crate::instructions::*;
 use crate::states::*;
 
-declare_id!("AVzr6agjgPNhh4i4bTRLt9rLv48Nj4v5qKxMvgYty21n");
+declare_id!("HTHyAbn3YXReoNWRczVasQkocnbXB4TASkjMpHrEGS9Q");
 
 #[program]
 pub mod geist_amm {

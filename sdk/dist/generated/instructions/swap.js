@@ -57,7 +57,7 @@ exports.swapInstructionDiscriminator = [
  * @category Swap
  * @category generated
  */
-function createSwapInstruction(accounts, args, programId = new web3.PublicKey('AVzr6agjgPNhh4i4bTRLt9rLv48Nj4v5qKxMvgYty21n')) {
+function createSwapInstruction(accounts, args, programId = new web3.PublicKey('HTHyAbn3YXReoNWRczVasQkocnbXB4TASkjMpHrEGS9Q')) {
     var _a;
     const [data] = exports.swapStruct.serialize(Object.assign({ instructionDiscriminator: exports.swapInstructionDiscriminator }, args));
     const keys = [

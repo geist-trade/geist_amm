@@ -43,23 +43,21 @@ export default class SimulatedPool {
 
     simulateAddLiquidity(
         deposits: BN[],
-        balances: BN[],
         lpTokenSupply: BN
     ) {
         return this.stableSwap.computeLpTokensOnDepositMulti(
             deposits,
-            balances,
+            this.balances,
             lpTokenSupply
         );
     }
 
     simulateWithdrawLiquidity(
-        balances: BN[],
         lpTokenSupply: BN,
         lpTokenWithdrawal: BN
     ) {
         return this.stableSwap.computeTokensOnWithdrawal(
-            balances,
+            this.balances,
             lpTokenSupply,
             lpTokenWithdrawal
         );

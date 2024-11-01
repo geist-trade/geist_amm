@@ -822,6 +822,29 @@ createErrorFromNameLookup.set(
 )
 
 /**
+ * InvalidLpTokenDecimals: 'InvalidLpTokenDecimals'
+ *
+ * @category Errors
+ * @category generated
+ */
+export class InvalidLpTokenDecimalsError extends Error {
+  readonly code: number = 0x1794
+  readonly name: string = 'InvalidLpTokenDecimals'
+  constructor() {
+    super('InvalidLpTokenDecimals')
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, InvalidLpTokenDecimalsError)
+    }
+  }
+}
+
+createErrorFromCodeLookup.set(0x1794, () => new InvalidLpTokenDecimalsError())
+createErrorFromNameLookup.set(
+  'InvalidLpTokenDecimals',
+  () => new InvalidLpTokenDecimalsError()
+)
+
+/**
  * Attempts to resolve a custom program error from the provided error code.
  * @category Errors
  * @category generated

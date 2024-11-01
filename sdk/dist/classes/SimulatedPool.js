@@ -15,11 +15,11 @@ class SimulatedPool {
     simulateSwapExactOut(input, output, outAmount) {
         return this.stableSwap.swapExactOut(this.balances, input, output, outAmount);
     }
-    simulateAddLiquidity(deposits, balances, lpTokenSupply) {
-        return this.stableSwap.computeLpTokensOnDepositMulti(deposits, balances, lpTokenSupply);
+    simulateAddLiquidity(deposits, lpTokenSupply) {
+        return this.stableSwap.computeLpTokensOnDepositMulti(deposits, this.balances, lpTokenSupply);
     }
-    simulateWithdrawLiquidity(balances, lpTokenSupply, lpTokenWithdrawal) {
-        return this.stableSwap.computeTokensOnWithdrawal(balances, lpTokenSupply, lpTokenWithdrawal);
+    simulateWithdrawLiquidity(lpTokenSupply, lpTokenWithdrawal) {
+        return this.stableSwap.computeTokensOnWithdrawal(this.balances, lpTokenSupply, lpTokenWithdrawal);
     }
 }
 exports.default = SimulatedPool;

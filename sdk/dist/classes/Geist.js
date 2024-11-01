@@ -15,8 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const generated_1 = require("../generated");
 const web3_js_1 = require("@solana/web3.js");
 const bn_js_1 = __importDefault(require("bn.js"));
-const anchor_1 = require("@coral-xyz/anchor");
-const geist_amm_json_1 = __importDefault(require("../idl/geist_amm.json"));
 const spl_token_1 = require("@solana/spl-token");
 class Geist {
     constructor({ connection }) {
@@ -25,8 +23,6 @@ class Geist {
         ], generated_1.PROGRAM_ID);
         this.connection = connection;
         this.core = core;
-        // @ts-ignore
-        this.program = new anchor_1.Program(geist_amm_json_1.default);
     }
     getCoreData() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -87,7 +83,7 @@ class Geist {
         ], generated_1.PROGRAM_ID);
     }
     initializePool(_a) {
-        return __awaiter(this, arguments, void 0, function* ({ amp, deposits, fees: { swapFeeBps, liquidityRemovalFeeBps }, user }) {
+        return __awaiter(this, arguments, void 0, function* ({ amp, deposits, fees, user }) {
             const instructions = [];
             const { nextPoolId } = yield this.getCoreData();
             const [pool] = this.derivePool(nextPoolId);
@@ -95,6 +91,7 @@ class Geist {
                 payer: user,
                 mintAuthority: pool
             });
+            const lpTokenAdminAta = (0, spl_token_1.getAssociatedTokenAddressSync)(lpToken, user);
             instructions.push(...lpTokenInstructions);
             // (stablecoin, stablecoin_vault, stablecoin_admin_ata)
             const remainingAccounts = [];
@@ -102,24 +99,42 @@ class Geist {
                 const accounts = yield this.constructRemainingAccountsForLiquidityManagement(stablecoin, user, pool);
                 remainingAccounts.push(...accounts);
             }
-            const ix = yield this
-                .program
-                .methods
-                .initializePool({
-                amp,
-                nTokens: new bn_js_1.default(deposits.length),
-                deposits: deposits.map(({ amount }) => amount),
-                fees: {
-                    swapFeeBps: new bn_js_1.default(swapFeeBps),
-                    liquidityRemovalFeeBps: new bn_js_1.default(liquidityRemovalFeeBps)
-                }
-            })
-                .accounts({
+            // const ix = await this
+            //     .program
+            //     .methods
+            //     .initializePool({
+            //         amp,
+            //         nTokens: new BN(deposits.length),
+            //         deposits: deposits.map(({ amount }) => amount),
+            //         fees: {
+            //             swapFeeBps: new BN(swapFeeBps),
+            //             liquidityRemovalFeeBps: new BN(liquidityRemovalFeeBps)
+            //         }
+            //     })
+            //     .accounts({
+            //         admin: user,
+            //         lpToken
+            //     })
+            //     .remainingAccounts(remainingAccounts)
+            //     .instruction();
+            const ix = (0, generated_1.createInitializePoolInstruction)({
+                pool,
+                core: this.core,
+                lpToken,
                 admin: user,
-                lpToken
-            })
-                .remainingAccounts(remainingAccounts)
-                .instruction();
+                lpTokenAdminAta,
+                tokenProgram: spl_token_1.TOKEN_PROGRAM_ID,
+                systemProgram: web3_js_1.SystemProgram.programId,
+                rent: web3_js_1.SYSVAR_RENT_PUBKEY,
+                anchorRemainingAccounts: remainingAccounts
+            }, {
+                args: {
+                    amp,
+                    nTokens: new bn_js_1.default(deposits.length),
+                    deposits: deposits.map(({ amount }) => amount),
+                    fees
+                }
+            }, generated_1.PROGRAM_ID);
             instructions.push(ix);
             return instructions;
         });
@@ -128,29 +143,31 @@ class Geist {
         return __awaiter(this, arguments, void 0, function* ({ poolId, deposits, user }) {
             const [pool] = this.derivePool(poolId);
             const { lpToken } = yield generated_1.Pool.fromAccountAddress(this.connection, pool);
+            const lpTokenUserAta = (0, spl_token_1.getAssociatedTokenAddressSync)(lpToken, user);
             const remainingAccounts = [];
             for (let { stablecoin } of deposits) {
                 const accounts = yield this.constructRemainingAccountsForLiquidityManagement(stablecoin, user, pool);
                 remainingAccounts.push(...accounts);
             }
-            const ix = yield this
-                .program
-                .methods
-                .addLiquidity({
-                poolId,
-                deposits: deposits.map(({ amount }) => amount),
-            })
-                .accounts({
+            const ix = (0, generated_1.createAddLiquidityInstruction)({
+                lpToken,
+                pool,
                 user,
-                lpToken
-            })
-                .remainingAccounts(remainingAccounts)
-                .instruction();
+                core: this.core,
+                tokenProgram: spl_token_1.TOKEN_PROGRAM_ID,
+                anchorRemainingAccounts: remainingAccounts,
+                lpTokenUserAta
+            }, {
+                args: {
+                    poolId,
+                    deposits: deposits.map(({ amount }) => amount),
+                }
+            });
             return ix;
         });
     }
     swap(_a) {
-        return __awaiter(this, arguments, void 0, function* ({ poolId, input, output, type, amount }) {
+        return __awaiter(this, arguments, void 0, function* ({ poolId, input, output, type, amount, user }) {
             const [pool] = this.derivePool(poolId);
             const { stablecoins } = yield generated_1.Pool.fromAccountAddress(this.connection, pool);
             const inputId = stablecoins.map(p => p.toString()).indexOf(input.toString());
@@ -162,6 +179,16 @@ class Geist {
             const mode = 'minimumReceived' in type
                 ? { exactIn: [{ minimumReceived: new bn_js_1.default(type.minimumReceived) }] }
                 : { exactOut: [{ maximumTaken: new bn_js_1.default(type.maximumTaken) }] };
+            const stablecoinInputVault = this.deriveVault({
+                pool,
+                stablecoin: input
+            });
+            const stablecoinInputUserAta = (0, spl_token_1.getAssociatedTokenAddressSync)(input, user);
+            const stablecoinOutputUserAta = (0, spl_token_1.getAssociatedTokenAddressSync)(output, user);
+            const stablecoinOutputVault = this.deriveVault({
+                pool,
+                stablecoin: output
+            });
             const remainingAccounts = stablecoins.map(stablecoin => {
                 const [vault] = web3_js_1.PublicKey.findProgramAddressSync([
                     Buffer.from("vault"),
@@ -174,18 +201,27 @@ class Geist {
                     isSigner: false
                 };
             });
-            const ix = yield this
-                .program
-                .methods
-                .swap({
-                poolId,
-                fromId: inputId,
-                toId: outputId,
-                mode: mode,
-                amount
-            })
-                .remainingAccounts(remainingAccounts)
-                .instruction();
+            const ix = (0, generated_1.createSwapInstruction)({
+                pool,
+                core: this.core,
+                user,
+                stablecoinInput: input,
+                stablecoinOutput: output,
+                stablecoinInputVault,
+                stablecoinOutputVault,
+                stablecoinInputUserAta,
+                stablecoinOutputUserAta,
+                anchorRemainingAccounts: remainingAccounts,
+                tokenProgram: spl_token_1.TOKEN_PROGRAM_ID,
+            }, {
+                args: {
+                    poolId,
+                    fromId: inputId,
+                    toId: outputId,
+                    mode: mode,
+                    amount
+                }
+            }, generated_1.PROGRAM_ID);
             return ix;
         });
     }
@@ -193,34 +229,37 @@ class Geist {
         return __awaiter(this, arguments, void 0, function* ({ poolId, lpTokenBurn, user }) {
             const [pool] = this.derivePool(poolId);
             const { lpToken, stablecoins } = yield generated_1.Pool.fromAccountAddress(this.connection, pool);
+            const lpTokenUserAta = (0, spl_token_1.getAssociatedTokenAddressSync)(lpToken, user);
             const remainingAccounts = [];
             for (let stablecoin of stablecoins) {
                 const accounts = yield this.constructRemainingAccountsForLiquidityManagement(stablecoin, user, pool);
                 remainingAccounts.push(...accounts);
             }
-            const ix = yield this
-                .program
-                .methods
-                .withdrawLiquidity({
-                poolId,
-                lpTokenBurn
-            })
-                .accounts({
+            const ix = (0, generated_1.createWithdrawLiquidityInstruction)({
+                pool,
+                core: this.core,
                 user,
-                lpToken
-            })
-                .remainingAccounts(remainingAccounts)
-                .instruction();
+                lpToken,
+                anchorRemainingAccounts: remainingAccounts,
+                lpTokenUserAta,
+            }, {
+                args: {
+                    poolId,
+                    lpTokenBurn
+                }
+            }, generated_1.PROGRAM_ID);
             return ix;
         });
     }
     getAllPools() {
         return __awaiter(this, void 0, void 0, function* () {
-            const pools = yield this
-                .program
-                .account
-                .pool
-                .all();
+            const poolsRaw = yield generated_1.Pool
+                .gpaBuilder(generated_1.PROGRAM_ID)
+                .addFilter("accountDiscriminator", generated_1.poolDiscriminator)
+                .run(this.connection);
+            const pools = poolsRaw
+                .map(({ account, pubkey }) => generated_1.Pool.fromAccountInfo(account))
+                .map(([account]) => account);
             return pools;
         });
     }
@@ -250,7 +289,8 @@ class Geist {
         return __awaiter(this, void 0, void 0, function* () {
             const pools = yield this.getAllPools();
             return yield Promise.all(pools.map((pool) => __awaiter(this, void 0, void 0, function* () {
-                const { publicKey, account: { stablecoins } } = pool;
+                const { stablecoins, index } = pool;
+                const [publicKey] = this.derivePool(index);
                 const lpBalances = yield this.getLpBalances(publicKey, stablecoins);
                 return Object.assign(Object.assign({}, pool), { lpBalances });
             })));

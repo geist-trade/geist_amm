@@ -52,7 +52,7 @@ export const addStablecoinInstructionDiscriminator = [
  */
 export function createAddStablecoinInstruction(
   accounts: AddStablecoinInstructionAccounts,
-  programId = new web3.PublicKey('AVzr6agjgPNhh4i4bTRLt9rLv48Nj4v5qKxMvgYty21n')
+  programId = new web3.PublicKey('HTHyAbn3YXReoNWRczVasQkocnbXB4TASkjMpHrEGS9Q')
 ) {
   const [data] = addStablecoinStruct.serialize({
     instructionDiscriminator: addStablecoinInstructionDiscriminator,

@@ -6,7 +6,7 @@
  * See: https://github.com/metaplex-foundation/solita
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ZeroInitialDepositError = exports.ZeroBalanceError = exports.InsufficientBalanceForWithdrawalError = exports.StablecoinWithdrawOnlyError = exports.SuperadminMismatchError = exports.SlippageExceededError = exports.ProtocolFrozenError = exports.NotEnoughLiquidityError = exports.PoolFrozenError = exports.PoolIdMismatchError = exports.InvalidInputError = exports.NotEnoughFundsError = exports.AtaNotInitializedError = exports.InvalidTokenAccountError = exports.InvalidVaultError = exports.InvalidTokenAccountMintError = exports.InvalidTokenAccountOwnerError = exports.InvalidRemainingAccountsSchemaError = exports.LpTokenNotInitializedError = exports.InvalidFreezeAuthorityError = exports.InvalidMintAuthorityError = exports.LpTokenPreMintedError = exports.AmplificationCoefficientOutOfBoundError = exports.InvalidInputLengthError = exports.PoolTokensCountOutOfBoundError = exports.DivisionByZeroError = exports.InvariantPrecisionNotFoundError = exports.MathOverflowError = exports.CastFailedError = exports.NotEnoughTokensError = exports.DuplicatedMintsError = exports.InvalidOracleError = exports.FrozenError = exports.StablecoinAlreadySupportedError = exports.StablecoinNotSupportedError = exports.InvalidCallbackErrorError = void 0;
+exports.InvalidLpTokenDecimalsError = exports.ZeroInitialDepositError = exports.ZeroBalanceError = exports.InsufficientBalanceForWithdrawalError = exports.StablecoinWithdrawOnlyError = exports.SuperadminMismatchError = exports.SlippageExceededError = exports.ProtocolFrozenError = exports.NotEnoughLiquidityError = exports.PoolFrozenError = exports.PoolIdMismatchError = exports.InvalidInputError = exports.NotEnoughFundsError = exports.AtaNotInitializedError = exports.InvalidTokenAccountError = exports.InvalidVaultError = exports.InvalidTokenAccountMintError = exports.InvalidTokenAccountOwnerError = exports.InvalidRemainingAccountsSchemaError = exports.LpTokenNotInitializedError = exports.InvalidFreezeAuthorityError = exports.InvalidMintAuthorityError = exports.LpTokenPreMintedError = exports.AmplificationCoefficientOutOfBoundError = exports.InvalidInputLengthError = exports.PoolTokensCountOutOfBoundError = exports.DivisionByZeroError = exports.InvariantPrecisionNotFoundError = exports.MathOverflowError = exports.CastFailedError = exports.NotEnoughTokensError = exports.DuplicatedMintsError = exports.InvalidOracleError = exports.FrozenError = exports.StablecoinAlreadySupportedError = exports.StablecoinNotSupportedError = exports.InvalidCallbackErrorError = void 0;
 exports.errorFromCode = errorFromCode;
 exports.errorFromName = errorFromName;
 const createErrorFromCodeLookup = new Map();
@@ -695,6 +695,25 @@ class ZeroInitialDepositError extends Error {
 exports.ZeroInitialDepositError = ZeroInitialDepositError;
 createErrorFromCodeLookup.set(0x1793, () => new ZeroInitialDepositError());
 createErrorFromNameLookup.set('ZeroInitialDeposit', () => new ZeroInitialDepositError());
+/**
+ * InvalidLpTokenDecimals: 'InvalidLpTokenDecimals'
+ *
+ * @category Errors
+ * @category generated
+ */
+class InvalidLpTokenDecimalsError extends Error {
+    constructor() {
+        super('InvalidLpTokenDecimals');
+        this.code = 0x1794;
+        this.name = 'InvalidLpTokenDecimals';
+        if (typeof Error.captureStackTrace === 'function') {
+            Error.captureStackTrace(this, InvalidLpTokenDecimalsError);
+        }
+    }
+}
+exports.InvalidLpTokenDecimalsError = InvalidLpTokenDecimalsError;
+createErrorFromCodeLookup.set(0x1794, () => new InvalidLpTokenDecimalsError());
+createErrorFromNameLookup.set('InvalidLpTokenDecimals', () => new InvalidLpTokenDecimalsError());
 /**
  * Attempts to resolve a custom program error from the provided error code.
  * @category Errors
