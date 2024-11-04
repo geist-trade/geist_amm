@@ -29,6 +29,7 @@ pub struct InitializePoolArgs {
     pub amp: u64,
     pub n_tokens: u64,
     pub deposits: Vec<u64>,
+    pub rates: Option<Vec<u64>>,
     pub fees: Fees
 }
 
@@ -40,7 +41,8 @@ pub fn initialize_pool<'a>(
         amp,
         deposits,
         fees,
-        n_tokens
+        n_tokens,
+        rates
     } = args;
 
     let admin = &ctx.accounts.admin;
@@ -97,12 +99,19 @@ pub fn initialize_pool<'a>(
         GeistError::InvalidInput
     );
 
+    // Require user to provide correct number of rates.
+    if (rates.is_some()) {
+        require!(
+            rates.as_ref().unwrap().len() == (n_tokens as usize),
+            GeistError::InvalidInput
+        );
+    }
+
     let signer_seeds = &[
         BINARY_POOL_SEED.as_bytes(),
         &core.next_pool_id.to_le_bytes(),
         &[ctx.bumps.pool]
     ];
-
 
     // TODO: Make this deserialization + validation process more generalised.
 
@@ -212,7 +221,7 @@ pub fn initialize_pool<'a>(
         }
     }
 
-    let stable_swap = StableSwap::new(amp, n_tokens)?;
+    let stable_swap = StableSwap::new(amp, n_tokens, rates)?;
     let pool = &mut ctx.accounts.pool;
 
     pool.admin = admin.key();

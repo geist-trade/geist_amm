@@ -112,4 +112,7 @@ pub enum GeistError {
 
     #[msg("InvalidLpTokenDecimals")]
     InvalidLpTokenDecimals,
+
+    #[msg("InvalidRates")]
+    InvalidRates,
 }

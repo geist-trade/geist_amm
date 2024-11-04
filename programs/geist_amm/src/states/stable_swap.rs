@@ -7,11 +7,12 @@ pub const MAX_AMP: u64 = 1_000_000;
 
 pub const MAX_ITERATIONS: u8 = 255;
 pub const PRECISION: u64 = 1_000_000_000;
+pub const RATES_PRECISION: u64 = 10_000;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, AnchorSerialize, AnchorDeserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, AnchorSerialize, AnchorDeserialize)]
 pub enum StableSwapMode {
-    BINARY, // only 2 tokens
-    MULTI // up to 8 tokens are supported
+    CONSTANT, // all tokens' prices are approaching 1
+    RATED(Vec<u64>) // prices vary by token
 }
 
 pub struct SwapOut {
@@ -30,25 +31,20 @@ pub struct StableSwap {
     // Number of tokens in the pool.
     pub n_tokens: u64, // 8
 
-    pub mode: StableSwapMode, // 1
-
-    pub rates: Vec<u64>, // 4 + n_tokens * 8
-
-    pub rates_precision: u64, // 8
+    pub mode: StableSwapMode, // 1 + 4 + (n_tokens * 8)
 }
 
 impl StableSwap {
     pub const fn size(
         n_tokens: u64
     ) -> usize {
-        return 2 * 8 + 1 + (4 + (n_tokens as usize) * 8) + 8
+        return 2 * 8 + (1 + 4 + (n_tokens as usize) * 8);
     }
 
     pub fn new(
         amp: u64,
         n_tokens: u64,
-        rates: Vec<u64>,
-        rates_precision: u64,
+        rates: Option<Vec<u64>>,
     ) -> Result<Self> {
         if (amp < MIN_AMP || amp > MAX_AMP) {
             return Err(GeistError::AmplificationCoefficientOutOfBound.into());
@@ -58,12 +54,28 @@ impl StableSwap {
             return Err(GeistError::PoolTokensCountOutOfBound.into())
         }
 
+        if (rates.is_some()) {
+            require!(
+                rates.as_ref().unwrap().len() == (n_tokens as usize),
+                GeistError::InvalidRates
+            );
+
+            for rate in rates.as_ref().unwrap() {
+                require!(
+                    *rate > 0,
+                    GeistError::InvalidRates
+                );
+            }
+        }
+
         Ok(Self {
             amp,
             n_tokens,
-            rates,
-            rates_precision,
-            mode: if n_tokens > 2 { StableSwapMode::MULTI } else { StableSwapMode::BINARY }
+            mode: if rates.is_some() { 
+                StableSwapMode::RATED(rates.unwrap())
+            } else { 
+                StableSwapMode::CONSTANT 
+            }
         })
     }
 
