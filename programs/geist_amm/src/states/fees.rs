@@ -7,5 +7,5 @@ pub struct Fees {
 }
 
 impl Fees {
-    pub const SIZE: u64 = 2 * 8;
+    pub const SIZE: usize = 2 * 8;
 }

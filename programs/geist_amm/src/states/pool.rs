@@ -39,15 +39,24 @@ pub struct Pool {
 }
 
 impl Pool {
-    pub const INITIAL_SIZE: usize = 8 +
-        32 * 2 +
-        8 * 2 +
-        1 +
-        4 +
-        1 +
-        StableSwap::SIZE as usize +
-        Fees::SIZE as usize +
+    pub const INITIAL_SIZE: usize = 8 + // anchor
+        32 * 4 + // 4 PublicKeys
+        8 + // Amp
+        1 +  // is_frozen
+        StableSwap::size(0) + // StableSwap
+        Fees::SIZE + // Fees struct
         1; // token_mode
+
+    pub const fn size(
+        n_tokens: u64
+    ) -> usize {
+        return 8 + 
+            32 * 4 + 
+            8 +
+            1 + 
+            StableSwap::size(n_tokens) +
+            Fees::SIZE;
+    }
 
     pub fn mint_compressed_lp_tokens<'a>(
         &self,

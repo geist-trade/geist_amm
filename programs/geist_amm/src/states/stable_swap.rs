@@ -22,7 +22,7 @@ pub struct SwapIn {
     pub in_amount: u64,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, AnchorSerialize, AnchorDeserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, AnchorSerialize, AnchorDeserialize)]
 pub struct StableSwap {
     // Amplification coefficient
     pub amp: u64, // 8
@@ -31,14 +31,24 @@ pub struct StableSwap {
     pub n_tokens: u64, // 8
 
     pub mode: StableSwapMode, // 1
+
+    pub rates: Vec<u64>, // 4 + n_tokens * 8
+
+    pub rates_precision: u64, // 8
 }
 
 impl StableSwap {
-    pub const SIZE: u64 = 8 + 2 * 8 + 1;
+    pub const fn size(
+        n_tokens: u64
+    ) -> usize {
+        return 2 * 8 + 1 + (4 + (n_tokens as usize) * 8) + 8
+    }
 
     pub fn new(
         amp: u64,
         n_tokens: u64,
+        rates: Vec<u64>,
+        rates_precision: u64,
     ) -> Result<Self> {
         if (amp < MIN_AMP || amp > MAX_AMP) {
             return Err(GeistError::AmplificationCoefficientOutOfBound.into());
@@ -51,19 +61,10 @@ impl StableSwap {
         Ok(Self {
             amp,
             n_tokens,
+            rates,
+            rates_precision,
             mode: if n_tokens > 2 { StableSwapMode::MULTI } else { StableSwapMode::BINARY }
         })
-    }
-
-    pub fn new_binary(
-        amp: u64,
-    ) -> Result<Self> {
-        return Ok(
-            Self::new(
-                amp,
-                2
-            )?
-        );
     }
 
     pub fn get_amp(&self) -> u64 {
@@ -557,4 +558,130 @@ impl StableSwap {
         Ok(tokens)
     }
 
+    pub fn balance_to_rated(
+        &self,
+        balance: u64,
+        rate: u64,
+        rate_precision: u64
+    ) -> Result<u64> {
+        let rated = balance
+            .checked_mul(rate)
+            .ok_or(GeistError::MathOverflow)?
+            .checked_div(rate_precision)
+            .ok_or(GeistError::MathOverflow)?;
+
+        Ok(rated)
+    }
+
+    pub fn balances_to_rated(
+        &self,
+        balances: &Vec<u64>,
+        rates: &Vec<u64>,
+        rate_precision: u64
+    ) -> Result<Vec<u64>> {
+        balances
+            .iter()
+            .zip(rates.iter())
+            .map(|(balance, rate)| self.balance_to_rated(*balance, *rate, rate_precision))
+            .collect()
+    }
+
+    pub fn swap_exact_in_rated(
+        &self,
+        // Vector of all balances in the pool.
+        balances: &Vec<u64>,
+        // Rates of all balances in the pool. MAX=1
+        rates: &Vec<u64>,
+        // Rate of the rates above.
+        rate_precision: u64,
+        // Index in the balances array. Token to be deposited.
+        from: usize,
+        // Index in the balances array. Token to be withdrawn.
+        to: usize,
+        // Amount of `from` coming into the swap.
+        from_amount: u64,
+    ) -> Result<SwapOut> {
+        let balances_rated = self.balances_to_rated(balances, rates, rate_precision)?;
+        self.swap_exact_in(&balances_rated, from, to, from_amount)
+    }
+
+    pub fn swap_exact_out_rated(
+        &self,
+        // Vector of all balances in the pool.
+        balances: &Vec<u64>,
+        // Rates of all balances in the pool. MAX=1
+        rates: &Vec<u64>,
+        // Rate of the rates above.
+        rate_precision: u64,
+        // Index in the balances array. Token to be deposited.
+        from: usize,
+        // Index in the balances array. Token to be withdrawn.
+        to: usize,
+        // Amount of `to` coming out of the swap.
+        from_amount: u64,
+    ) -> Result<SwapIn> {
+        let balances_rated = self.balances_to_rated(balances, rates, rate_precision)?;
+        self.swap_exact_out(&balances_rated, from, to, from_amount)
+    }
+
+    pub fn compute_lp_tokens_on_deposit_rated(
+        &self,
+        deposit_id: usize,
+        deposit_amount: u64,
+        balances: &Vec<u64>,
+        rates: &Vec<u64>,
+        rate_precision: u64,
+        lp_token_supply: u64
+    ) -> Result<u64> {
+        let balances_rated = self.balances_to_rated(balances, rates, rate_precision)?;
+        self.compute_lp_tokens_on_deposit(deposit_id, deposit_amount, &balances_rated, lp_token_supply)
+    }
+
+    pub fn compute_lp_tokens_on_withdrawal_rated(
+        &self,
+        withdrawal_id: usize,
+        withdrawal_amount: u64,
+        balances: &Vec<u64>,
+        rates: &Vec<u64>,
+        rate_precision: u64,
+        lp_token_supply: u64
+    ) -> Result<u64> {
+        let balances_rated = self.balances_to_rated(balances, rates, rate_precision)?;
+        self.compute_lp_tokens_on_withdrawal(withdrawal_id, withdrawal_amount, &balances_rated, lp_token_supply)
+    }
+
+    pub fn compute_lp_tokens_on_deposit_multi_rated(
+        &self,
+        deposits: &Vec<u64>,
+        balances: &Vec<u64>,
+        rates: &Vec<u64>,
+        rate_precision: u64,
+        lp_token_supply: u64
+    ) -> Result<u64> {
+        let balances_rated = self.balances_to_rated(balances, rates, rate_precision)?;
+        let deposits_rated = self.balances_to_rated(deposits, rates, rate_precision)?;
+
+        self.compute_lp_tokens_on_deposit_multi(
+            &deposits_rated, 
+            &balances_rated,
+            lp_token_supply
+        )
+    }
+
+    pub fn compute_tokens_on_withdrawal_rated(
+        &self,
+        balances: &Vec<u64>,
+        rates: &Vec<u64>,
+        rate_precision: u64,
+        lp_token_supply: u64,
+        lp_token_withdrawal: u64,
+    ) -> Result<Vec<u64>> {
+        let balances_rated = self.balances_to_rated(balances, rates, rate_precision)?;
+
+        self.compute_tokens_on_withdrawal(
+            &balances_rated, 
+            lp_token_supply, 
+            lp_token_withdrawal
+        )
+    }
 }
