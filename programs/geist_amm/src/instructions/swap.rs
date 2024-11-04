@@ -6,7 +6,7 @@ use anchor_spl::token::{
     transfer,
     Transfer
 };
-use crate::constants::*;
+use crate::{constants::*, StableSwapMode};
 use crate::states::{
     SwapOut,
     SwapIn,
@@ -101,12 +101,25 @@ pub fn swap(
 
             let SwapOut {
                 out_amount: out
-            } = pool.swap.swap_exact_in(
-                &balances, 
-                from_id.into(), 
-                to_id.into(), 
-                in_amount
-            )?;
+            } = match &pool.swap.mode {
+                StableSwapMode::CONSTANT => {
+                    pool.swap.swap_exact_in(
+                        &balances, 
+                        from_id.into(), 
+                        to_id.into(), 
+                        in_amount
+                    )?
+                },
+                StableSwapMode::RATED(rates) => {
+                    pool.swap.swap_exact_in_rated(
+                        &balances, 
+                        rates, 
+                        from_id.into(), 
+                        to_id.into(),
+                        in_amount
+                    )?
+                }
+            };
 
             out_amount = out;
 
@@ -121,12 +134,25 @@ pub fn swap(
 
             let SwapIn {
                 in_amount: in_am
-            } = pool.swap.swap_exact_out(
-                &balances, 
-                from_id.into(), 
-                to_id.into(), 
-                out_amount, 
-            )?;
+            } = match &pool.swap.mode {
+                StableSwapMode::CONSTANT => {
+                    pool.swap.swap_exact_out(
+                        &balances, 
+                        from_id.into(), 
+                        to_id.into(), 
+                        out_amount, 
+                    )?
+                },
+                StableSwapMode::RATED(rates) => {
+                    pool.swap.swap_exact_out_rated(
+                        &balances, 
+                        rates,
+                        from_id.into(), 
+                        to_id.into(), 
+                        out_amount, 
+                    )?
+                }
+            };
 
             msg!("in_am: {}", in_am);
 

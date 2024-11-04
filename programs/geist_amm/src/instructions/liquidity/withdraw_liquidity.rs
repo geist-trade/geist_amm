@@ -5,7 +5,7 @@ use crate::errors::GeistError;
 use anchor_spl::token::{
     self, burn, transfer, Burn, Mint, TokenAccount, Transfer
 };
-use crate::constants::*;
+use crate::{constants::*, StableSwapMode};
 use crate::stable_swap;
 
 #[derive(AnchorDeserialize, AnchorSerialize)]
@@ -133,11 +133,23 @@ pub fn withdraw_liquidity<'a>(
         }
     }
 
-    let withdrawal_amounts = pool.swap.compute_tokens_on_withdrawal(
-        &balances,
-        lp_token.supply,
-        lp_token_burn
-    )?;
+    let withdrawal_amounts = match &pool.swap.mode {
+        StableSwapMode::CONSTANT => {
+            pool.swap.compute_tokens_on_withdrawal(
+                &balances,
+                lp_token.supply,
+                lp_token_burn
+            )?
+        },
+        StableSwapMode::RATED(rates) => {
+            pool.swap.compute_tokens_on_withdrawal_rated(
+                &balances,
+                rates,
+                lp_token.supply,
+                lp_token_burn
+            )?
+        }
+    };
 
     for (index, amount) in withdrawal_amounts.iter().enumerate() {
         let source = sources[index];

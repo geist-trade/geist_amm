@@ -157,13 +157,27 @@ pub fn add_liquidity<'a>(
 
     msg!("Tokens transferred. Calculating LP tokens");
 
-    let lp_tokens = pool
-        .swap
-        .compute_lp_tokens_on_deposit_multi(
-            &deposits, 
-            &balances, 
-            lp_token.supply
-        )?;
+    let lp_tokens = match &pool.swap.mode {
+        StableSwapMode::CONSTANT => {
+            pool
+                .swap
+                .compute_lp_tokens_on_deposit_multi(
+                    &deposits, 
+                    &balances, 
+                    lp_token.supply
+                )?
+        },
+        StableSwapMode::RATED(rates) => {
+            pool
+                .swap
+                .compute_lp_tokens_on_deposit_multi_rated(
+                    &deposits, 
+                    &balances, 
+                    rates,
+                    lp_token.supply
+                )?
+        }
+    };
 
     msg!("Minting LP tokens: {}", lp_tokens);
 

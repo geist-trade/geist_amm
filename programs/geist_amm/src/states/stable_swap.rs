@@ -573,13 +573,12 @@ impl StableSwap {
     pub fn balance_to_rated(
         &self,
         balance: u64,
-        rate: u64,
-        rate_precision: u64
+        rate: u64
     ) -> Result<u64> {
         let rated = balance
             .checked_mul(rate)
             .ok_or(GeistError::MathOverflow)?
-            .checked_div(rate_precision)
+            .checked_div(RATES_PRECISION)
             .ok_or(GeistError::MathOverflow)?;
 
         Ok(rated)
@@ -588,13 +587,12 @@ impl StableSwap {
     pub fn balances_to_rated(
         &self,
         balances: &Vec<u64>,
-        rates: &Vec<u64>,
-        rate_precision: u64
+        rates: &Vec<u64>
     ) -> Result<Vec<u64>> {
         balances
             .iter()
             .zip(rates.iter())
-            .map(|(balance, rate)| self.balance_to_rated(*balance, *rate, rate_precision))
+            .map(|(balance, rate)| self.balance_to_rated(*balance, *rate))
             .collect()
     }
 
@@ -604,8 +602,6 @@ impl StableSwap {
         balances: &Vec<u64>,
         // Rates of all balances in the pool. MAX=1
         rates: &Vec<u64>,
-        // Rate of the rates above.
-        rate_precision: u64,
         // Index in the balances array. Token to be deposited.
         from: usize,
         // Index in the balances array. Token to be withdrawn.
@@ -613,7 +609,7 @@ impl StableSwap {
         // Amount of `from` coming into the swap.
         from_amount: u64,
     ) -> Result<SwapOut> {
-        let balances_rated = self.balances_to_rated(balances, rates, rate_precision)?;
+        let balances_rated = self.balances_to_rated(balances, rates)?;
         self.swap_exact_in(&balances_rated, from, to, from_amount)
     }
 
@@ -623,8 +619,6 @@ impl StableSwap {
         balances: &Vec<u64>,
         // Rates of all balances in the pool. MAX=1
         rates: &Vec<u64>,
-        // Rate of the rates above.
-        rate_precision: u64,
         // Index in the balances array. Token to be deposited.
         from: usize,
         // Index in the balances array. Token to be withdrawn.
@@ -632,7 +626,7 @@ impl StableSwap {
         // Amount of `to` coming out of the swap.
         from_amount: u64,
     ) -> Result<SwapIn> {
-        let balances_rated = self.balances_to_rated(balances, rates, rate_precision)?;
+        let balances_rated = self.balances_to_rated(balances, rates)?;
         self.swap_exact_out(&balances_rated, from, to, from_amount)
     }
 
@@ -642,10 +636,9 @@ impl StableSwap {
         deposit_amount: u64,
         balances: &Vec<u64>,
         rates: &Vec<u64>,
-        rate_precision: u64,
         lp_token_supply: u64
     ) -> Result<u64> {
-        let balances_rated = self.balances_to_rated(balances, rates, rate_precision)?;
+        let balances_rated = self.balances_to_rated(balances, rates)?;
         self.compute_lp_tokens_on_deposit(deposit_id, deposit_amount, &balances_rated, lp_token_supply)
     }
 
@@ -655,10 +648,9 @@ impl StableSwap {
         withdrawal_amount: u64,
         balances: &Vec<u64>,
         rates: &Vec<u64>,
-        rate_precision: u64,
         lp_token_supply: u64
     ) -> Result<u64> {
-        let balances_rated = self.balances_to_rated(balances, rates, rate_precision)?;
+        let balances_rated = self.balances_to_rated(balances, rates)?;
         self.compute_lp_tokens_on_withdrawal(withdrawal_id, withdrawal_amount, &balances_rated, lp_token_supply)
     }
 
@@ -667,11 +659,10 @@ impl StableSwap {
         deposits: &Vec<u64>,
         balances: &Vec<u64>,
         rates: &Vec<u64>,
-        rate_precision: u64,
         lp_token_supply: u64
     ) -> Result<u64> {
-        let balances_rated = self.balances_to_rated(balances, rates, rate_precision)?;
-        let deposits_rated = self.balances_to_rated(deposits, rates, rate_precision)?;
+        let balances_rated = self.balances_to_rated(balances, rates)?;
+        let deposits_rated = self.balances_to_rated(deposits, rates)?;
 
         self.compute_lp_tokens_on_deposit_multi(
             &deposits_rated, 
@@ -684,11 +675,10 @@ impl StableSwap {
         &self,
         balances: &Vec<u64>,
         rates: &Vec<u64>,
-        rate_precision: u64,
         lp_token_supply: u64,
         lp_token_withdrawal: u64,
     ) -> Result<Vec<u64>> {
-        let balances_rated = self.balances_to_rated(balances, rates, rate_precision)?;
+        let balances_rated = self.balances_to_rated(balances, rates)?;
 
         self.compute_tokens_on_withdrawal(
             &balances_rated, 
